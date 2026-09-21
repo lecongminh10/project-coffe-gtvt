@@ -1,0 +1,95 @@
+@model BaiTapLon.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng Nhập Tài Khoản";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="auth-modern-card">
+                <div class="text-center mb-4">
+                    <div class="brand-icon-box mx-auto mb-3" style="width: 58px; height: 58px; font-size: 1.5rem;">
+                        <i class="fas fa-coffee"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Đăng Nhập</h3>
+                    <p class="text-muted small">Chào mừng bạn quay lại với Coffee Paradise</p>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success small mb-3 rounded-3">
+                        <i class="fas fa-check-circle me-1"></i> @TempData["SuccessMessage"]
+                    </div>
+                }
+
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3 rounded-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label fw-bold small text-muted"></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted rounded-start-pill ps-3"><i class="fas fa-user"></i></span>
+                            <input asp-for="Username" id="loginUsername" class="form-control border-start-0 rounded-end-pill" placeholder="Tên đăng nhập" autofocus />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-bold small text-muted"></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted rounded-start-pill ps-3"><i class="fas fa-lock"></i></span>
+                            <input asp-for="Password" id="loginPassword" class="form-control border-start-0 rounded-end-pill" placeholder="Mật khẩu" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label small text-muted"></label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-coffee-amber w-100 py-3 mb-3 fs-6">
+                        <i class="fas fa-sign-in-alt me-1"></i> Đăng Nhập
+                    </button>
+
+                    <div class="text-center small text-muted mb-4">
+                        Chưa có tài khoản? <a asp-action="Register" class="fw-bold text-dark">Đăng ký ngay</a>
+                    </div>
+
+                    <!-- Quick Demo Autofill Panel -->
+                    <div class="p-3 bg-light rounded-4 border">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-dark small fw-bold">
+                            <i class="fas fa-key text-warning"></i> Điền Nhanh Tài Khoản Demo:
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="quick-demo-btn" onclick="fillDemo('admin', 'admin123')">
+                                <i class="fas fa-user-shield text-danger me-1"></i> Admin
+                            </button>
+                            <button type="button" class="quick-demo-btn" onclick="fillDemo('staff', 'staff123')">
+                                <i class="fas fa-user-tie text-primary me-1"></i> Nhân Viên
+                            </button>
+                            <button type="button" class="quick-demo-btn" onclick="fillDemo('khachhang', '123456')">
+                                <i class="fas fa-coffee text-success me-1"></i> Khách Hàng
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function fillDemo(user, pass) {
+            document.getElementById('loginUsername').value = user;
+            document.getElementById('loginPassword').value = pass;
+            showCoffeeToast('Đã điền thông tin demo', `Tài khoản: ${user}`, 'info');
+        }
+    </script>
+}

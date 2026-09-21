@@ -1,0 +1,122 @@
+@model IEnumerable<BaiTapLon.Models.Order>
+@{
+    ViewData["Title"] = "Quản Lý Đơn Đặt Món";
+    var currentStatus = ViewBag.CurrentStatus as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-receipt text-primary me-2"></i>Quản Lý Đơn Hàng & Hóa Đơn</h1>
+        <p class="text-muted small mb-0">Tiếp nhận đơn gọi món tại bàn / mang về và theo dõi tiến độ pha chế.</p>
+    </div>
+</div>
+
+<!-- Lọc theo trạng thái đơn -->
+<div class="card border-0 shadow-sm rounded-3 bg-white p-3 mb-4">
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(currentStatus) ? "btn-dark" : "btn-outline-secondary")">
+            Tất Cả (@Model.Count())
+        </a>
+        <a asp-action="Index" asp-route-status="Pending" class="btn btn-sm @(currentStatus == "Pending" ? "btn-warning" : "btn-outline-warning text-dark")">
+            <i class="fas fa-hourglass-half me-1"></i> Chờ Tiếp Nhận (Pending)
+        </a>
+        <a asp-action="Index" asp-route-status="Processing" class="btn btn-sm @(currentStatus == "Processing" ? "btn-info" : "btn-outline-info text-dark")">
+            <i class="fas fa-blender me-1"></i> Đang Pha Chế (Processing)
+        </a>
+        <a asp-action="Index" asp-route-status="Completed" class="btn btn-sm @(currentStatus == "Completed" ? "btn-success" : "btn-outline-success")">
+            <i class="fas fa-check-circle me-1"></i> Hoàn Thành (Completed)
+        </a>
+        <a asp-action="Index" asp-route-status="Cancelled" class="btn btn-sm @(currentStatus == "Cancelled" ? "btn-danger" : "btn-outline-danger")">
+            <i class="fas fa-times-circle me-1"></i> Đã Hủy (Cancelled)
+        </a>
+    </div>
+</div>
+
+<!-- Bảng danh sách đơn hàng -->
+<div class="card border-0 shadow-sm rounded-3 bg-white">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width: 80px;">Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Số ĐT</th>
+                        <th>Vị Trí Phục Vụ</th>
+                        <th>Thời Gian Đặt</th>
+                        <th>Số Món</th>
+                        <th>Tổng Tiền</th>
+                        <th>Thanh Toán</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end" style="width: 120px;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center py-4 text-muted">Không có đơn hàng nào theo trạng thái đang chọn.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var o in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-coffee">#@o.OrderId</td>
+                                <td class="fw-bold">@o.CustomerName</td>
+                                <td class="small text-muted">@o.CustomerPhone</td>
+                                <td>
+                                    @if (o.Table != null)
+                                    {
+                                        <span class="badge bg-primary">@o.Table.TableName (@o.Table.Area)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Mang về</span>
+                                    }
+                                </td>
+                                <td class="small text-muted">@o.OrderDate.ToString("HH:mm dd/MM/yyyy")</td>
+                                <td class="fw-bold text-center">@(o.OrderDetails?.Sum(od => od.Quantity) ?? 0)</td>
+                                <td class="fw-bold text-success">@o.TotalAmount.ToString("N0") đ</td>
+                                <td>
+                                    @if (o.IsPaid)
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check"></i> Đã trả (@o.PaymentMethod)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Chưa trả (@o.PaymentMethod)</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (o.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                                    }
+                                    else if (o.Status == "Processing")
+                                    {
+                                        <span class="badge bg-info text-dark">Đang pha chế</span>
+                                    }
+                                    else if (o.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">Hoàn thành</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Đã hủy</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@o.OrderId" class="btn btn-sm btn-outline-primary" title="Xem chi tiết & Cập nhật">
+                                        <i class="fas fa-eye me-1"></i> Xử lý
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,120 @@
+@model BaiTapLon.Models.Order
+@{
+    ViewData["Title"] = "Chi Tiết Đơn Hàng #" + Model.OrderId;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-file-invoice text-primary me-2"></i>Hóa Đơn Chi Tiết #@Model.OrderId</h1>
+        <p class="text-muted small mb-0">Thời gian tạo: @Model.OrderDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Quay Lại
+        </a>
+        <button onclick="window.print()" class="btn btn-info btn-sm text-white">
+            <i class="fas fa-print me-1"></i> In Hóa Đơn
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Cột thông tin món ăn & tổng tiền -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Danh Sách Món Được Gọi</h5>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Món</th>
+                            <th class="text-center">Số Lượng</th>
+                            <th class="text-end">Đơn Giá</th>
+                            <th class="text-end">Thành Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderDetails)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="@(item.Product?.ImageUrl ?? "/images/products/ca-phe-den.jpg")" class="rounded" style="width: 45px; height: 45px; object-fit: cover;" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+                                        <div>
+                                            <div class="fw-bold">@(item.Product?.Name ?? $"Món #{item.ProductId}")</div>
+                                            <small class="text-muted">Mã món: #@item.ProductId</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-bold">@item.Quantity</td>
+                                <td class="text-end text-muted">@item.UnitPrice.ToString("N0") đ</td>
+                                <td class="text-end fw-bold text-dark">@((item.UnitPrice * item.Quantity).ToString("N0")) đ</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="3" class="text-end fw-bold fs-5">Tổng Tiền Thanh Toán:</td>
+                            <td class="text-end fw-bold fs-5 text-success">@Model.TotalAmount.ToString("N0") VNĐ</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="alert alert-light border mt-4 mb-0">
+                    <i class="fas fa-comment-dots text-warning me-2"></i><strong>Ghi chú của khách hàng:</strong> @Model.Notes
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Cột cập nhật trạng thái đơn và thanh toán -->
+    <div class="col-lg-4">
+        <!-- Thông tin khách hàng & Vị trí -->
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Thông Tin Khách Hàng</h5>
+            <div class="small">
+                <div class="mb-2"><strong>Họ tên:</strong> @Model.CustomerName</div>
+                <div class="mb-2"><strong>Điện thoại:</strong> @Model.CustomerPhone</div>
+                <div class="mb-2"><strong>Hình thức:</strong> @(Model.Table != null ? "Uống tại bàn" : "Mang về (Take-Away)")</div>
+                @if (Model.Table != null)
+                {
+                    <div class="mb-2"><strong>Bàn phục vụ:</strong> <span class="badge bg-primary fs-6">@Model.Table.TableName (@Model.Table.Area)</span></div>
+                }
+                <div class="mb-2"><strong>Phương thức:</strong> @Model.PaymentMethod</div>
+            </div>
+        </div>
+
+        <!-- Form chuyển trạng thái đơn hàng -->
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Cập Nhật Tiến Độ & Thanh Toán</h5>
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.OrderId" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted">Trạng Thái Đơn Hàng</label>
+                    <select name="status" class="form-select">
+                        <option value="Pending" selected="@(Model.Status == "Pending")">Chờ xử lý (Pending)</option>
+                        <option value="Processing" selected="@(Model.Status == "Processing")">Đang pha chế (Processing)</option>
+                        <option value="Completed" selected="@(Model.Status == "Completed")">Hoàn thành (Completed)</option>
+                        <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Hủy đơn (Cancelled)</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input name="isPaid" type="checkbox" value="true" class="form-check-input" id="isPaidSwitch" checked="@(Model.IsPaid)" />
+                        <label class="form-check-label fw-bold small" for="isPaidSwitch">Đã Thu Tiền / Đã Thanh Toán</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                    <i class="fas fa-save me-1"></i> Lưu Thay Đổi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+@model IEnumerable<BaiTapLon.Models.Category>
+@{
+    ViewData["Title"] = "Quản Lý Danh Mục";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-tags text-info me-2"></i>Quản Lý Danh Mục Đồ Uống</h1>
+        <p class="text-muted small mb-0">Thêm, sửa, xóa các nhóm đồ uống trong thực đơn quán café.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary btn-sm shadow-sm">
+        <i class="fas fa-plus me-1"></i> Thêm Danh Mục Mới
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3 bg-white">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width: 70px;">STT</th>
+                        <th>Icon</th>
+                        <th>Tên Danh Mục</th>
+                        <th>Mô Tả</th>
+                        <th class="text-center">Số Món</th>
+                        <th class="text-center">Thứ Tự</th>
+                        <th class="text-end" style="width: 140px;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-muted">#@item.CategoryId</td>
+                            <td>
+                                <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light" style="width: 38px; height: 38px;">
+                                    <i class="fas @(string.IsNullOrEmpty(item.Icon) ? "fa-mug-hot" : item.Icon) text-warning"></i>
+                                </div>
+                            </td>
+                            <td class="fw-bold">@item.Name</td>
+                            <td class="text-muted small">@item.Description</td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">@(item.Products?.Count ?? 0) món</span>
+                            </td>
+                            <td class="text-center fw-bold">@item.DisplayOrder</td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a asp-action="Edit" asp-route-id="@item.CategoryId" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.CategoryId" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

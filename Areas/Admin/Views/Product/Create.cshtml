@@ -1,0 +1,84 @@
+@model BaiTapLon.Models.Product
+@{
+    ViewData["Title"] = "Thêm Món Mới";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-plus-circle text-primary me-2"></i>Thêm Món Mới Vào Thực Đơn</h1>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Quay Lại
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label asp-for="Name" class="form-label fw-bold small text-muted"></label>
+                        <input asp-for="Name" class="form-control" placeholder="Ví dụ: Cà Phê Muối Xứ Huế" autofocus />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="CategoryId" class="form-label fw-bold small text-muted"></label>
+                        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories"></select>
+                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Price" class="form-label fw-bold small text-muted"></label>
+                        <div class="input-group">
+                            <input asp-for="Price" class="form-control" type="number" step="1000" placeholder="35000" />
+                            <span class="input-group-text">VNĐ</span>
+                        </div>
+                        <span asp-validation-for="Price" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold small text-muted">Tải Ảnh Món Lên (File)</label>
+                        <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-bold small text-muted"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả hương vị, nguyên liệu..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsAvailable" class="form-check-input" checked />
+                            <label asp-for="IsAvailable" class="form-check-label fw-bold text-muted small"></label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsFeatured" class="form-check-input" />
+                            <label asp-for="IsFeatured" class="form-check-label fw-bold text-muted small"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-top d-flex gap-2 justify-content-end">
+                    <a asp-action="Index" class="btn btn-light">Hủy</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> Lưu Món
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

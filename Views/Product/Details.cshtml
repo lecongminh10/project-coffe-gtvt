@@ -1,0 +1,150 @@
+@model BaiTapLon.Models.Product
+@{
+    ViewData["Title"] = Model.Name + " - Chi Tiết Thức Uống";
+    var related = ViewBag.RelatedProducts as List<BaiTapLon.Models.Product> ?? new List<BaiTapLon.Models.Product>();
+}
+
+<div class="container my-4 my-md-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-white px-3 py-2 rounded-pill shadow-sm border d-inline-flex mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-muted"><i class="fas fa-home me-1"></i> Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-muted">Thực đơn</a></li>
+            <li class="breadcrumb-item active fw-semibold text-dark" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <!-- Main Detail Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5 bg-white">
+        <div class="row g-0">
+            <div class="col-lg-5">
+                <div class="h-100 d-flex align-items-center justify-content-center p-4" style="background: linear-gradient(135deg, #f7efe6, #eedfcb); min-height: 380px;">
+                    <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded-4 shadow-md transition" style="max-height: 350px; object-fit: cover;" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+                </div>
+            </div>
+            <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-warning bg-opacity-20 text-warning px-3 py-1 rounded-pill fw-bold text-uppercase" style="font-size: 0.75rem;">
+                        <i class="fas fa-tag me-1"></i> @(Model.Category?.Name ?? "Đồ uống")
+                    </span>
+                    @if (Model.IsFeatured)
+                    {
+                        <span class="badge bg-danger text-white px-3 py-1 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                            <i class="fas fa-fire me-1"></i> Best Seller
+                        </span>
+                    }
+                </div>
+
+                <h1 class="display-6 fw-bold text-dark mb-2">@Model.Name</h1>
+
+                <div class="d-flex align-items-baseline gap-3 mb-3">
+                    <span class="display-6 fw-bold" style="color: var(--coffee-primary);">
+                        @Model.Price.ToString("N0") <small class="fs-5 text-muted">VNĐ</small>
+                    </span>
+                    <div class="text-warning small">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="text-muted ms-1">(4.9/5 đánh giá)</span>
+                    </div>
+                </div>
+
+                <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                    @(string.IsNullOrEmpty(Model.Description) ? "Thức uống được pha chế với nguồn nguyên liệu tươi ngon nhất, giữ trọn hương vị nguyên bản và năng lượng sảng khoái cho ngày mới." : Model.Description)
+                </p>
+
+                <!-- Quantity and Add to cart -->
+                <div class="p-3 bg-light rounded-4 mb-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label class="form-label fw-bold small mb-1 text-muted d-block">Số lượng:</label>
+                            <div class="qty-stepper">
+                                <button type="button" class="qty-btn" onclick="adjustDetailQty(-1)">-</button>
+                                <span class="qty-display" id="detailQtyDisplay">1</span>
+                                <input type="hidden" id="detailQty" value="1" />
+                                <button type="button" class="qty-btn" onclick="adjustDetailQty(1)">+</button>
+                            </div>
+                        </div>
+                        <div class="col-auto flex-grow-1 align-self-end">
+                            <button type="button" class="btn-coffee-amber w-100 py-3" onclick="addFromDetails(@Model.ProductId, '@Model.Name')">
+                                <i class="fas fa-cart-plus me-1"></i> Thêm Vào Giỏ Hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service badges -->
+                <div class="pt-3 border-top text-muted small">
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-check-circle text-success fs-6"></i>
+                                <span>100% Cà phê sạch nguyên chất</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-clock text-primary fs-6"></i>
+                                <span>Phục vụ tại bàn & Giao hàng nhanh</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    @if (related.Any())
+    {
+        <div class="mb-4">
+            <h4 class="fw-bold mb-3 text-dark">
+                <i class="fas fa-thumbs-up text-warning me-2"></i> Món Cùng Danh Mục
+            </h4>
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
+                @foreach (var r in related)
+                {
+                    <div class="col">
+                        <div class="product-card-modern">
+                            <div class="product-thumb-box" style="padding-top: 70%;">
+                                <img src="@r.ImageUrl" alt="@r.Name" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+                            </div>
+                            <div class="product-card-body">
+                                <h6 class="product-card-title">
+                                    <a asp-action="Details" asp-route-id="@r.ProductId">@r.Name</a>
+                                </h6>
+                                <div class="product-card-footer">
+                                    <span class="product-price-val">@r.Price.ToString("N0") <small>đ</small></span>
+                                    <a asp-action="Details" asp-route-id="@r.ProductId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                        Xem
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function adjustDetailQty(delta) {
+            const input = document.getElementById('detailQty');
+            const display = document.getElementById('detailQtyDisplay');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            if (val > 50) val = 50;
+            input.value = val;
+            display.innerText = val;
+        }
+
+        function addFromDetails(productId, productName) {
+            const qty = parseInt(document.getElementById('detailQty').value) || 1;
+            addToCartGlobal(productId, qty, productName);
+        }
+    </script>
+}

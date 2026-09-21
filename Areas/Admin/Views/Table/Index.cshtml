@@ -1,0 +1,131 @@
+@model IEnumerable<BaiTapLon.Models.CoffeeTable>
+@{
+    ViewData["Title"] = "Sơ Đồ Bàn Quán Café";
+    var areas = Model.Select(t => t.Area).Distinct().ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-chair text-success me-2"></i>Sơ Đồ Bàn & Tình Trạng Phục Vụ</h1>
+        <p class="text-muted small mb-0">Theo dõi bàn trống, bàn đang có khách và đổi trạng thái phục vụ nhanh chóng.</p>
+    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#createTableModal">
+            <i class="fas fa-plus me-1"></i> Thêm Bàn Mới
+        </button>
+    }
+</div>
+
+<!-- Chú thích màu sắc -->
+<div class="card border-0 shadow-sm rounded-3 bg-white p-3 mb-4">
+    <div class="d-flex flex-wrap gap-4 align-items-center small">
+        <span class="fw-bold text-muted">Chú thích:</span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success p-2"></span> <strong>Available:</strong> Bàn Đang Trống (Sẵn sàng đón khách)
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger p-2"></span> <strong>Occupied:</strong> Đang Có Khách (Đang phục vụ)
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning p-2"></span> <strong>Reserved:</strong> Đã Đặt Trước
+        </div>
+    </div>
+</div>
+
+<!-- Danh sách bàn phân theo Khu vực -->
+@foreach (var area in areas)
+{
+    var tablesInArea = Model.Where(t => t.Area == area).ToList();
+    <div class="mb-4">
+        <h5 class="fw-bold text-dark border-bottom pb-2">
+            <i class="fas fa-map-pin text-primary me-2"></i>Khu Vực: @area (@tablesInArea.Count bàn)
+        </h5>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 mt-1">
+            @foreach (var table in tablesInArea)
+            {
+                var bgClass = table.Status == "Available" ? "border-success bg-success bg-opacity-10" : 
+                              table.Status == "Occupied" ? "border-danger bg-danger bg-opacity-10" : "border-warning bg-warning bg-opacity-10";
+                var textClass = table.Status == "Available" ? "text-success" : 
+                                table.Status == "Occupied" ? "text-danger" : "text-warning";
+
+                <div class="col">
+                    <div class="card border-2 shadow-sm rounded-4 h-100 p-3 bg-white @bgClass">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="h5 fw-bold mb-0 text-dark">@table.TableName</span>
+                            <span class="badge @(table.Status == "Available" ? "bg-success" : table.Status == "Occupied" ? "bg-danger" : "bg-warning text-dark")">
+                                @table.Status
+                            </span>
+                        </div>
+                        <div class="small text-muted mb-3">
+                            <div><i class="fas fa-users me-1"></i> Sức chứa: <strong>@table.Capacity người</strong></div>
+                            <div><i class="fas fa-layer-group me-1"></i> Khu vực: @table.Area</div>
+                        </div>
+
+                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <!-- Đổi trạng thái nhanh -->
+                            <form asp-action="UpdateStatus" method="post" class="d-flex gap-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="tableId" value="@table.TableId" />
+                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="Available" selected="@(table.Status == "Available")">Trống (Available)</option>
+                                    <option value="Occupied" selected="@(table.Status == "Occupied")">Có Khách (Occupied)</option>
+                                    <option value="Reserved" selected="@(table.Status == "Reserved")">Đặt Trước (Reserved)</option>
+                                </select>
+                            </form>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <form asp-action="Delete" asp-route-id="@table.TableId" method="post" onsubmit="return confirm('Xóa bàn này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm text-danger" title="Xóa bàn"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Modal Thêm Bàn Mới -->
+<div class="modal fade" id="createTableModal" tabindex="-1" aria-labelledby="createTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="createTableModalLabel">Thêm Bàn Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Tên / Số Bàn</label>
+                        <input name="TableName" class="form-control" placeholder="Ví dụ: Bàn 10" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Khu Vực</label>
+                        <input name="Area" class="form-control" placeholder="Ví dụ: Tầng 1, Tầng 2, Sân Vườn, VIP" value="Tầng 1" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Sức Chứa (Người)</label>
+                        <input name="Capacity" type="number" class="form-control" value="4" min="1" max="30" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Trạng Thái Ban Đầu</label>
+                        <select name="Status" class="form-select">
+                            <option value="Available">Available (Trống)</option>
+                            <option value="Occupied">Occupied (Có khách)</option>
+                            <option value="Reserved">Reserved (Đặt trước)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu Bàn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

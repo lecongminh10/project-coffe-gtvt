@@ -1,0 +1,22 @@
+@model IEnumerable<BaiTapLon.Models.Category>
+@{
+    int? selectedId = ViewBag.SelectedCategoryId as int?;
+}
+
+<div class="category-scroll-wrapper py-2" id="categoryFilterContainer">
+    <a href="javascript:void(0)" 
+       class="category-pill-modern @(selectedId == null ? "active" : "")" 
+       data-category-id=""
+       onclick="filterByCategory(null, this)">
+        <i class="fas fa-th-large"></i> Tất Cả Món
+    </a>
+    @foreach (var cat in Model)
+    {
+        <a href="javascript:void(0)" 
+           class="category-pill-modern @(selectedId == cat.CategoryId ? "active" : "")" 
+           data-category-id="@cat.CategoryId"
+           onclick="filterByCategory(@cat.CategoryId, this)">
+            <i class="fas @(string.IsNullOrEmpty(cat.Icon) ? "fa-mug-hot" : cat.Icon)"></i> @cat.Name
+        </a>
+    }
+</div>

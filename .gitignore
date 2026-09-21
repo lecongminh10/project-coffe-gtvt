@@ -1,0 +1,15 @@
+## Ignore Visual Studio / .NET Core temporary files and build output
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride

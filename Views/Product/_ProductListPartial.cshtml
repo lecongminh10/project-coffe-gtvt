@@ -1,0 +1,94 @@
+@model BaiTapLon.Models.ViewModels.ProductFilterViewModel
+
+@if (Model.Products == null || !Model.Products.Any())
+{
+    <div class="col-12 text-center py-5">
+        <div class="p-5 bg-white rounded-4 shadow-sm border">
+            <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3 bg-light" style="width: 70px; height: 70px;">
+                <i class="fas fa-coffee fa-2x text-muted"></i>
+            </div>
+            <h5 class="text-dark fw-bold mb-1">Không tìm thấy món nào phù hợp</h5>
+            <p class="text-muted small mb-3">Vui lòng thử chọn danh mục khác hoặc xóa từ khóa tìm kiếm của bạn.</p>
+            <button class="btn btn-coffee-outline" onclick="resetFilter()">
+                <i class="fas fa-redo me-1"></i> Đặt lại bộ lọc
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
+        @foreach (var item in Model.Products)
+        {
+            <div class="col">
+                <div class="product-card-modern">
+                    <div class="product-thumb-box">
+                        @if (item.IsFeatured)
+                        {
+                            <span class="product-badge-float">
+                                <i class="fas fa-fire-alt"></i> Bán chạy
+                            </span>
+                        }
+                        <img src="@item.ImageUrl" alt="@item.Name" loading="lazy" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+                        <span class="product-category-chip">
+                            @(item.Category?.Name ?? "Đồ uống")
+                        </span>
+                    </div>
+                    <div class="product-card-body">
+                        <h5 class="product-card-title">
+                            <a asp-action="Details" asp-route-id="@item.ProductId">
+                                @item.Name
+                            </a>
+                        </h5>
+                        <p class="product-card-desc" title="@item.Description">
+                            @(string.IsNullOrEmpty(item.Description) ? "Thức uống pha chế tươi ngon mỗi ngày." : item.Description)
+                        </p>
+                        <div class="product-card-footer">
+                            <span class="product-price-val">
+                                @item.Price.ToString("N0") <small>đ</small>
+                            </span>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.ProductId" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Xem chi tiết">
+                                    <i class="fas fa-eye" style="font-size: 0.75rem;"></i>
+                                </a>
+                                <button type="button" class="btn-add-cart-mini" onclick="addToCartGlobal(@item.ProductId, 1, '@item.Name')" title="Thêm vào giỏ">
+                                    <i class="fas fa-cart-plus"></i> <span class="d-none d-sm-inline">Chọn</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Phân trang Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-4 border-top">
+            <div class="text-muted small">
+                Hiển thị trang <strong>@Model.PageIndex</strong> / <strong>@Model.TotalPages</strong> (Tổng số <strong>@Model.TotalItems</strong> món)
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0 gap-1">
+                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link rounded-pill px-3" href="javascript:void(0)" onclick="changePage(@(Model.PageIndex - 1))">
+                            <i class="fas fa-chevron-left me-1"></i> Trước
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link rounded-circle text-center" style="width: 32px; height: 32px; line-height: 20px;" href="javascript:void(0)" onclick="changePage(@i)">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                        <a class="page-link rounded-pill px-3" href="javascript:void(0)" onclick="changePage(@(Model.PageIndex + 1))">
+                            Sau <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+}

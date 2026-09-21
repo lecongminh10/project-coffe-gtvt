@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>@ViewData["Title"] - Quản Trị Quán Café</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="~/css/admin-styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body, .sb-nav-fixed { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important; }
+        .card { border-radius: 14px; }
+    </style>
+</head>
+<body class="sb-nav-fixed">
+    <!-- Top Navbar -->
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <!-- Navbar Brand-->
+        <a class="navbar-brand ps-3 fw-bold" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+            <i class="fas fa-coffee text-warning me-2"></i>Coffee Admin
+        </a>
+        <!-- Sidebar Toggle-->
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 text-white" id="sidebarToggle" href="#!">
+            <i class="fas fa-bars"></i>
+        </button>
+        <!-- Navbar Search-->
+        <div class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-light" target="_blank">
+                <i class="fas fa-external-link-alt me-1"></i> Xem Trang Khách Hàng
+            </a>
+        </div>
+        <!-- Navbar User Menu-->
+        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user-shield text-warning"></i>
+                    <span>@(User.Identity?.Name ?? "Quản trị")</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
+                    <li><span class="dropdown-item-text text-muted small">Quyền: <strong>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Admin")</strong></span></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i> Đăng Xuất
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div id="layoutSidenav">
+        <!-- Sidebar Navigation -->
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <div class="sb-sidenav-menu-heading">Tổng Quan</div>
+                        <a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt text-warning"></i></div>
+                            Bảng Thống Kê
+                        </a>
+
+                        <div class="sb-sidenav-menu-heading">Quản Lý Thực Đơn</div>
+                        <a class="nav-link" asp-area="Admin" asp-controller="Category" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tags text-info"></i></div>
+                            Danh Mục Món
+                        </a>
+                        <a class="nav-link" asp-area="Admin" asp-controller="Product" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-mug-hot text-danger"></i></div>
+                            Món Ăn & Đồ Uống
+                        </a>
+
+                        <div class="sb-sidenav-menu-heading">Vận Hành & Phục Vụ</div>
+                        <a class="nav-link" asp-area="Admin" asp-controller="Table" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chair text-success"></i></div>
+                            Sơ Đồ Bàn Quán
+                        </a>
+                        <a class="nav-link" asp-area="Admin" asp-controller="Order" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-receipt text-primary"></i></div>
+                            Đơn Hàng & Hóa Đơn
+                        </a>
+
+                        <div class="sb-sidenav-menu-heading">Kho & Nguyên Vật Liệu</div>
+                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Nhà Cung Cấp & Nguyên Liệu (4 Nhà cung cấp, 10 Nguyên liệu trong database)')">
+                            <div class="sb-nav-link-icon"><i class="fas fa-boxes text-warning"></i></div>
+                            Kho Nguyên Liệu
+                        </a>
+                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Công Thức Pha Chế Định Lượng (10 Recipes trong database)')">
+                            <div class="sb-nav-link-icon"><i class="fas fa-blender text-info"></i></div>
+                            Công Thức Pha Chế
+                        </a>
+
+                        <div class="sb-sidenav-menu-heading">Khách Hàng & Tiếp Thị</div>
+                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Mã Giảm Giá & Voucher (4 Mã khuyến mãi kích hoạt trong database)')">
+                            <div class="sb-nav-link-icon"><i class="fas fa-ticket-alt text-danger"></i></div>
+                            Mã Khuyến Mãi (Voucher)
+                        </a>
+                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Đánh Giá & Nhận Xét (5 Reviews sao trong database)')">
+                            <div class="sb-nav-link-icon"><i class="fas fa-star text-warning"></i></div>
+                            Đánh Giá (Reviews)
+                        </a>
+                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Tin Tức & Bài Viết (3 Bài viết chuẩn SEO trong database)')">
+                            <div class="sb-nav-link-icon"><i class="fas fa-newspaper text-primary"></i></div>
+                            Tin Tức & Sự Kiện
+                        </a>
+
+                        <div class="sb-sidenav-menu-heading">Nhân Sự & Ca Trực</div>
+                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Phân Ca & Lịch Làm Việc (3 Ca trực & Lịch phân công trong database)')">
+                            <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt text-success"></i></div>
+                            Phân Ca Làm Việc
+                        </a>
+
+                        <div class="sb-sidenav-menu-heading">Hệ Thống</div>
+                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-store"></i></div>
+                            Về Cửa Hàng
+                        </a>
+                    </div>
+                </div>
+                <div class="sb-sidenav-footer">
+                    <div class="small">Đang đăng nhập bằng:</div>
+                    <strong>@(User.Identity?.Name ?? "Admin")</strong> (MySQL Engine)
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content Wrapper -->
+        <div id="layoutSidenav_content">
+            <main class="p-4">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+
+            <footer class="py-3 bg-light mt-auto border-top">
+                <div class="container-fluid px-4">
+                    <div class="d-flex align-items-center justify-content-between small text-muted">
+                        <div>&copy; @DateTime.Now.Year Coffee Paradise - Phân hệ Quản trị Admin/Staff</div>
+                        <div>Hệ thống kết nối MySQL qua EF Core Code First</div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin-scripts.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
