@@ -1,0 +1,3 @@
+@model BaiTapLon.Models.News
+@{ ViewData["Title"] = Model.Title; }
+<article class="container py-5" style="max-width:900px"><a asp-action="Index" class="text-decoration-none">← Tin tức</a><h1 class="fw-bold mt-3">@Model.Title</h1><p class="text-muted">@Model.PublishedAt.ToString("dd/MM/yyyy HH:mm") · @(Model.Author?.FullName ?? "Brew & Go") · @Model.ViewCount lượt xem</p>@if(!string.IsNullOrEmpty(Model.ImageUrl)){<img src="@Model.ImageUrl" class="img-fluid rounded-4 mb-4 w-100" style="max-height:480px;object-fit:cover"/>}<p class="lead">@Model.Summary</p><div class="fs-5 lh-lg">@Html.Raw(Model.Content)</div></article>

@@ -1,0 +1,40 @@
+@model BaiTapLon.Models.ViewModels.InventoryViewModel
+@{ ViewData["Title"] = "Kho nguyên liệu"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="h3 fw-bold mb-1">Kho nguyên liệu</h1><p class="text-muted mb-0">Theo dõi tồn kho, nhập/xuất và nhà cung cấp.</p></div>
+    @if (User.IsInRole("Admin")) { <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ingredientModal"><i class="fas fa-plus me-1"></i> Thêm nguyên liệu</button> }
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card p-3 border-0 shadow-sm"><span class="text-muted">Nguyên liệu</span><strong class="fs-3">@Model.Ingredients.Count</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 border-0 shadow-sm"><span class="text-muted">Sắp hết hàng</span><strong class="fs-3 text-danger">@Model.Ingredients.Count(i => i.QuantityInStock <= i.MinimumStock)</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 border-0 shadow-sm"><span class="text-muted">Nhà cung cấp</span><strong class="fs-3">@Model.Suppliers.Count</strong></div></div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4"><div class="card-body"><div class="table-responsive"><table class="table align-middle">
+    <thead><tr><th>Nguyên liệu</th><th>Nhà cung cấp</th><th>Tồn kho</th><th>Mức tối thiểu</th><th>Quy đổi</th><th>Thao tác</th></tr></thead>
+    <tbody>@foreach (var item in Model.Ingredients) { <tr class="@(item.QuantityInStock <= item.MinimumStock ? "table-danger" : "")">
+        <td><strong>@item.Name</strong><br/><small>@item.UnitPrice.ToString("N0")đ/@item.Unit</small></td><td>@item.Supplier?.Name</td>
+        <td><strong>@item.QuantityInStock.ToString("N2") @item.Unit</strong></td><td>@item.MinimumStock.ToString("N2") @item.Unit</td>
+        <td>1 @item.Unit = @item.BaseUnitsPerStockUnit.ToString("N2") @item.BaseUnit</td>
+        <td><button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#adjustModal" data-id="@item.IngredientId" data-name="@item.Name">Nhập/xuất</button></td>
+    </tr> }</tbody>
+</table></div></div></div>
+
+<div class="row g-4">
+<div class="col-lg-6"><div class="card border-0 shadow-sm"><div class="card-header bg-white fw-bold">Giao dịch kho gần đây</div><div class="card-body table-responsive"><table class="table table-sm">
+<thead><tr><th>Thời gian</th><th>Nguyên liệu</th><th>SL</th><th>Tồn sau</th></tr></thead><tbody>
+@foreach (var tx in Model.RecentTransactions) { <tr><td>@tx.CreatedAt.ToString("dd/MM HH:mm")</td><td>@tx.Ingredient?.Name<br/><small>@tx.Note</small></td><td class="@(tx.Quantity < 0 ? "text-danger" : "text-success")">@tx.Quantity.ToString("+0.##;-0.##")</td><td>@tx.BalanceAfter.ToString("N2")</td></tr> }
+</tbody></table></div></div></div>
+<div class="col-lg-6"><div class="card border-0 shadow-sm"><div class="card-header bg-white d-flex justify-content-between"><strong>Nhà cung cấp</strong>@if(User.IsInRole("Admin")){<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#supplierModal">Thêm</button>}</div><div class="card-body">
+@foreach(var supplier in Model.Suppliers){<div class="border-bottom py-2"><strong>@supplier.Name</strong><div class="small text-muted">@supplier.ContactPerson · @supplier.PhoneNumber · @supplier.Email</div></div>}
+</div></div></div></div>
+
+<div class="modal fade" id="adjustModal"><div class="modal-dialog"><form asp-action="AdjustStock" method="post" class="modal-content">@Html.AntiForgeryToken()<div class="modal-header"><h5 class="modal-title">Điều chỉnh kho: <span id="adjustName"></span></h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="ingredientId" id="adjustId"/><label class="form-label">Số lượng (+ nhập, - xuất)</label><input class="form-control mb-3" type="number" step="0.01" name="quantity" required/><label class="form-label">Ghi chú</label><input class="form-control" name="note"/></div><div class="modal-footer"><button class="btn btn-primary">Lưu</button></div></form></div></div>
+
+@if(User.IsInRole("Admin")){
+<div class="modal fade" id="ingredientModal"><div class="modal-dialog"><form asp-action="CreateIngredient" method="post" class="modal-content">@Html.AntiForgeryToken()<div class="modal-header"><h5 class="modal-title">Thêm nguyên liệu</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body row g-3"><div class="col-12"><label>Tên</label><input name="Name" class="form-control" required/></div><div class="col-6"><label>Đơn vị tồn</label><input name="Unit" value="kg" class="form-control" required/></div><div class="col-6"><label>Đơn vị cơ sở</label><input name="BaseUnit" value="g" class="form-control" required/></div><div class="col-6"><label>Hệ số quy đổi</label><input name="BaseUnitsPerStockUnit" value="1000" type="number" step="0.01" class="form-control" required/></div><div class="col-6"><label>Tồn ban đầu</label><input name="QuantityInStock" value="0" type="number" step="0.01" class="form-control"/></div><div class="col-6"><label>Tồn tối thiểu</label><input name="MinimumStock" value="5" type="number" step="0.01" class="form-control"/></div><div class="col-6"><label>Đơn giá</label><input name="UnitPrice" value="0" type="number" class="form-control"/></div><div class="col-12"><label>Nhà cung cấp</label><select name="SupplierId" class="form-select"><option value="">-- Không chọn --</option>@foreach(var s in Model.Suppliers){<option value="@s.SupplierId">@s.Name</option>}</select></div></div><div class="modal-footer"><button class="btn btn-primary">Thêm</button></div></form></div></div>
+<div class="modal fade" id="supplierModal"><div class="modal-dialog"><form asp-action="SaveSupplier" method="post" class="modal-content">@Html.AntiForgeryToken()<div class="modal-header"><h5 class="modal-title">Thêm nhà cung cấp</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input name="Name" class="form-control mb-2" placeholder="Tên nhà cung cấp" required/><input name="ContactPerson" class="form-control mb-2" placeholder="Người liên hệ"/><input name="PhoneNumber" class="form-control mb-2" placeholder="Điện thoại"/><input name="Email" class="form-control mb-2" placeholder="Email"/><input name="Address" class="form-control" placeholder="Địa chỉ"/></div><div class="modal-footer"><button class="btn btn-primary">Lưu</button></div></form></div></div>}
+
+@section Scripts { <script>document.getElementById('adjustModal')?.addEventListener('show.bs.modal',e=>{const b=e.relatedTarget;document.getElementById('adjustId').value=b.dataset.id;document.getElementById('adjustName').textContent=b.dataset.name;});</script> }

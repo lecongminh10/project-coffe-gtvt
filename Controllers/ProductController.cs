@@ -120,6 +120,7 @@ public class ProductController : Controller
 
         var product = await _context.Products
             .Include(p => p.Category)
+            .Include(p => p.Reviews.Where(r => r.IsApproved))
             .FirstOrDefaultAsync(m => m.ProductId == id);
 
         if (product == null) return NotFound();

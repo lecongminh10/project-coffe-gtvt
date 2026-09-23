@@ -24,6 +24,18 @@ public class EmployeeSchedule
     [StringLength(255)]
     public string? Note { get; set; }
 
+    public DateTime? CheckInTime { get; set; }
+
+    public DateTime? CheckOutTime { get; set; }
+
+    [NotMapped]
+    public decimal WorkedHours => CheckInTime.HasValue && CheckOutTime.HasValue
+        ? Math.Round((decimal)(CheckOutTime.Value - CheckInTime.Value).TotalHours, 2)
+        : 0;
+
+    [NotMapped]
+    public decimal EstimatedWage => WorkedHours * (Shift?.HourlyWage ?? 0);
+
     // Navigation properties
     [ForeignKey("UserId")]
     public virtual User? User { get; set; }

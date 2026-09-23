@@ -1,76 +1,89 @@
 @model BaiTapLon.Models.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Bảng Thống Kê Quán Café";
+    ViewData["Title"] = "Bảng Thống Kê Hoạt Động";
+    int totalTables = Model.OccupiedTables + Model.AvailableTables;
+    int occupancyRate = totalTables > 0 ? (int)Math.Round((double)Model.OccupiedTables * 100 / totalTables) : 0;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-tachometer-alt text-warning me-2"></i>Bảng Điều Khiển Quán Café</h1>
-        <p class="text-muted small mb-0">Theo dõi doanh thu, tình trạng bàn và các đơn đặt món theo thời gian thực.</p>
+        <h1 class="h3 mb-0 text-dark fw-bold"><i class="fas fa-chart-pie text-warning me-2"></i>Bảng Thống Kê & Vận Hành</h1>
+        <p class="text-muted small mb-0">Theo dõi doanh thu, tỷ lệ lấp đầy bàn và tiến độ đơn hàng thời gian thực.</p>
     </div>
-    <div>
-        <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-primary btn-sm shadow-sm">
-            <i class="fas fa-receipt me-1"></i> Xem Tất Cả Đơn Hàng
+    <div class="d-flex gap-2">
+        <a asp-area="Admin" asp-controller="Table" asp-action="Index" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fas fa-chair me-1"></i> Sơ Đồ Bàn POS
+        </a>
+        <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fas fa-receipt me-1"></i> Tiếp Nhận Đơn Hàng
         </a>
     </div>
 </div>
 
-<!-- 4 Thẻ Thống Kê Chính -->
+<!-- 4 Thẻ KPI Metric Cao Cấp -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-3 border-start border-success border-4 h-100 p-3 bg-white">
+        <div class="kpi-metric-card border-revenue">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Doanh Thu Đã Thu</div>
-                    <div class="h4 mb-0 fw-bold text-success">@Model.TotalRevenue.ToString("N0") <small class="fs-6">đ</small></div>
+                    <div class="kpi-title">Doanh Thu Thực Tế</div>
+                    <div class="kpi-value text-success">@Model.TotalRevenue.ToString("N0") <small class="fs-6 fw-normal text-muted">đ</small></div>
+                    <div class="small text-muted mt-2"><i class="fas fa-check-double text-success me-1"></i>Đơn đã thanh toán</div>
                 </div>
-                <div class="rounded-circle p-3 bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-dollar-sign fa-2x"></i>
+                <div class="kpi-icon-box kpi-icon-revenue">
+                    <i class="fas fa-coins"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-3 border-start border-primary border-4 h-100 p-3 bg-white">
+        <div class="kpi-metric-card border-orders">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Tổng Đơn Đặt Món</div>
-                    <div class="h4 mb-0 fw-bold text-primary">@Model.TotalOrders</div>
+                    <div class="kpi-title">Tổng Số Đơn Hàng</div>
+                    <div class="kpi-value text-primary">@Model.TotalOrders</div>
+                    <div class="small text-muted mt-2"><i class="fas fa-arrow-up text-primary me-1"></i>Hoạt động trong hệ thống</div>
                 </div>
-                <div class="rounded-circle p-3 bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-shopping-cart fa-2x"></i>
+                <div class="kpi-icon-box kpi-icon-orders">
+                    <i class="fas fa-receipt"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-3 border-start border-warning border-4 h-100 p-3 bg-white">
+        <div class="kpi-metric-card border-products">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Tình Trạng Bàn</div>
-                    <div class="h5 mb-0 fw-bold">
-                        <span class="text-danger">@Model.OccupiedTables Có khách</span> / 
-                        <span class="text-success">@Model.AvailableTables Trống</span>
+                    <div class="kpi-title">Tỷ Lệ Lấp Đầy Bàn</div>
+                    <div class="kpi-value text-warning">@occupancyRate%</div>
+                    <div class="small text-muted mt-2">
+                        <span class="text-danger fw-bold">@Model.OccupiedTables bận</span> / 
+                        <span class="text-success fw-bold">@Model.AvailableTables trống</span>
                     </div>
                 </div>
-                <div class="rounded-circle p-3 bg-warning bg-opacity-10 text-warning">
-                    <i class="fas fa-chair fa-2x"></i>
+                <div class="kpi-icon-box kpi-icon-products">
+                    <i class="fas fa-chair"></i>
                 </div>
+            </div>
+            <!-- Progress bar -->
+            <div class="progress mt-3" style="height: 6px; border-radius: 999px;">
+                <div class="progress-bar bg-danger" role="progressbar" style="width: @occupancyRate%;" aria-valuenow="@occupancyRate" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         </div>
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm rounded-3 border-start border-info border-4 h-100 p-3 bg-white">
+        <div class="kpi-metric-card border-customers">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Món Đang Phục Vụ</div>
-                    <div class="h4 mb-0 fw-bold text-info">@Model.TotalProducts</div>
+                    <div class="kpi-title">Thực Đơn Đang Bán</div>
+                    <div class="kpi-value text-purple" style="color: #8b5cf6;">@Model.TotalProducts</div>
+                    <div class="small text-muted mt-2"><i class="fas fa-mug-hot text-purple me-1"></i>Món sẵn sàng phục vụ</div>
                 </div>
-                <div class="rounded-circle p-3 bg-info bg-opacity-10 text-info">
-                    <i class="fas fa-coffee fa-2x"></i>
+                <div class="kpi-icon-box kpi-icon-customers">
+                    <i class="fas fa-utensils"></i>
                 </div>
             </div>
         </div>
@@ -80,30 +93,32 @@
 <div class="row g-4 mb-4">
     <!-- Bảng đơn hàng gần đây -->
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-3 bg-white">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-clock text-muted me-2"></i>Đơn Đặt Món Gần Đây</h6>
-                <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem thêm</a>
+        <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h6 class="m-0 fw-bold text-dark"><i class="fas fa-clock text-warning me-2"></i>Đơn Đặt Món Mới Nhất</h6>
+                <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    Xem tất cả <i class="fas fa-chevron-right ms-1"></i>
+                </a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light small">
+                        <thead class="table-light small text-muted">
                             <tr>
-                                <th>Mã Đơn</th>
+                                <th class="ps-3">Mã Đơn</th>
                                 <th>Khách Hàng</th>
-                                <th>Bàn</th>
+                                <th>Bàn / Phục vụ</th>
                                 <th>Thời Gian</th>
                                 <th>Tổng Tiền</th>
                                 <th>Trạng Thái</th>
-                                <th>Thao Tác</th>
+                                <th class="text-end pe-3">Chi Tiết</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (Model.RecentOrders == null || !Model.RecentOrders.Any())
                             {
                                 <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">Chưa có đơn hàng nào trong hệ thống.</td>
+                                    <td colspan="7" class="text-center py-4 text-muted">Chưa có đơn hàng nào trong ca làm việc.</td>
                                 </tr>
                             }
                             else
@@ -111,37 +126,48 @@
                                 @foreach (var o in Model.RecentOrders)
                                 {
                                     <tr>
-                                        <td class="fw-bold">#@o.OrderId</td>
+                                        <td class="ps-3 fw-bold text-dark">#@o.OrderId</td>
                                         <td>
-                                            <div class="fw-bold">@o.CustomerName</div>
+                                            <div class="fw-bold text-dark">@o.CustomerName</div>
                                             <small class="text-muted">@o.CustomerPhone</small>
                                         </td>
                                         <td>
-                                            <span class="badge bg-secondary">@(o.Table?.TableName ?? "Mang về")</span>
+                                            <span class="badge @(o.Table != null ? "bg-warning bg-opacity-20 text-dark" : "bg-light text-muted")">
+                                                <i class="fas @(o.Table != null ? "fa-chair" : "fa-shopping-bag") me-1"></i>
+                                                @(o.Table?.TableName ?? "Mang về")
+                                            </span>
                                         </td>
                                         <td class="small text-muted">@o.OrderDate.ToString("HH:mm dd/MM")</td>
-                                        <td class="fw-bold text-success">@o.TotalAmount.ToString("N0") đ</td>
+                                        <td class="fw-bold" style="color: var(--primary-espresso);">@o.TotalAmount.ToString("N0") đ</td>
                                         <td>
                                             @if (o.Status == "Pending")
                                             {
-                                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                                <span class="order-status-badge status-badge-pending">
+                                                    <i class="fas fa-hourglass-half"></i> Chờ duyệt
+                                                </span>
                                             }
                                             else if (o.Status == "Processing")
                                             {
-                                                <span class="badge bg-info text-dark">Đang làm</span>
+                                                <span class="order-status-badge status-badge-processing">
+                                                    <i class="fas fa-blender"></i> Pha chế
+                                                </span>
                                             }
                                             else if (o.Status == "Completed")
                                             {
-                                                <span class="badge bg-success">Hoàn tất</span>
+                                                <span class="order-status-badge status-badge-completed">
+                                                    <i class="fas fa-check"></i> Hoàn thành
+                                                </span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-danger">Hủy</span>
+                                                <span class="order-status-badge status-badge-cancelled">
+                                                    <i class="fas fa-times"></i> Đã hủy
+                                                </span>
                                             }
                                         </td>
-                                        <td>
-                                            <a asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-id="@o.OrderId" class="btn btn-sm btn-outline-info">
-                                                <i class="fas fa-eye"></i>
+                                        <td class="text-end pe-3">
+                                            <a asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-id="@o.OrderId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                Xem
                                             </a>
                                         </td>
                                     </tr>
@@ -156,29 +182,32 @@
 
     <!-- Món bán chạy nhất -->
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
-            <div class="card-header bg-white py-3">
-                <h6 class="m-0 fw-bold text-dark"><i class="fas fa-star text-warning me-2"></i>Món Bán Chạy (Top Menu)</h6>
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-dark"><i class="fas fa-fire text-danger me-2"></i>Món Nổi Bật Được Chọn Nhiều</h6>
             </div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
                     @foreach (var p in Model.TopProducts)
                     {
-                        <li class="list-group-item d-flex align-items-center gap-3 px-0">
-                            <img src="@p.ImageUrl" alt="@p.Name" class="rounded-3" style="width: 45px; height: 45px; object-fit: cover;" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+                        <li class="list-group-item d-flex align-items-center gap-3 px-0 py-3 border-bottom border-light">
+                            <img src="@p.ImageUrl" alt="@p.Name" class="rounded-3 shadow-sm" style="width: 48px; height: 48px; object-fit: cover;" onerror="this.src='/images/products/ca-phe-den.jpg'" />
                             <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-0" style="font-size: 0.95rem;">@p.Name</h6>
-                                <small class="text-muted">@(p.Category?.Name ?? "Đồ uống")</small>
+                                <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.95rem;">@p.Name</h6>
+                                <span class="badge bg-light text-muted" style="font-size: 0.72rem;">@(p.Category?.Name ?? "Đồ uống")</span>
                             </div>
-                            <span class="fw-bold text-primary">@p.Price.ToString("N0") đ</span>
+                            <span class="fw-bold text-success">@p.Price.ToString("N0") đ</span>
                         </li>
                     }
                 </ul>
-                <div class="mt-3 text-center">
-                    <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-secondary w-100">
-                        Quản lý toàn bộ thực đơn
-                    </a>
-                </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="mt-4 text-center">
+                        <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-secondary w-100 rounded-pill py-2">
+                            Quản lý toàn bộ thực đơn
+                        </a>
+                    </div>
+                }
             </div>
         </div>
     </div>

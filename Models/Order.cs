@@ -48,6 +48,17 @@ public class Order
     [Display(Name = "Trạng thái thanh toán")]
     public bool IsPaid { get; set; } = false;
 
+    [StringLength(50)]
+    [Display(Name = "Mã giảm giá")]
+    public string? VoucherCode { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    [Display(Name = "Số tiền giảm")]
+    public decimal DiscountAmount { get; set; } = 0;
+
+    [Display(Name = "Đã trừ kho")]
+    public bool InventoryDeducted { get; set; } = false;
+
     [StringLength(500)]
     [Display(Name = "Ghi chú đơn hàng")]
     public string? Notes { get; set; }

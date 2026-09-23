@@ -109,9 +109,30 @@
 
                         <!-- Chọn bàn (ẩn khi mang về) -->
                         <div class="mb-3" id="tableSelectionDiv">
-                            <label asp-for="TableId" class="form-label fw-bold small text-muted"></label>
-                            <select asp-for="TableId" class="form-select rounded-3">
-                                <option value="">-- Vui lòng chọn bàn --</option>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label asp-for="TableId" class="form-label fw-bold small text-muted mb-0">Chọn Bàn Ngồi:</label>
+                                <span class="badge bg-light text-muted small">Nhấn chọn bàn trực tiếp</span>
+                            </div>
+
+                            <!-- Lưới thẻ bàn trực quan sinh động -->
+                            <div class="checkout-table-grid mb-2">
+                                @foreach (var t in tables)
+                                {
+                                    bool isAvail = t.Status == "Available";
+                                    <div class="checkout-table-item @(isAvail ? "" : "opacity-50")" 
+                                         data-table-id="@t.TableId" 
+                                         onclick="@(isAvail ? $"selectCheckoutTable({t.TableId})" : "alert('Bàn này hiện đang có khách hoặc đã đặt!')")">
+                                        <div class="table-name"><i class="fas fa-chair me-1" style="color: var(--brand-primary);"></i>@t.TableName</div>
+                                        <div class="table-sub">@t.Area · @t.Capacity chỗ</div>
+                                        <div class="badge rounded-pill @(isAvail ? "bg-success text-white" : "bg-danger text-white") mt-1" style="font-size: 0.65rem;">
+                                            @(isAvail ? "🟢 Bàn trống" : "🔴 " + t.Status)
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <select asp-for="TableId" id="tableSelectHidden" class="form-select rounded-3 mt-1">
+                                <option value="">-- Hoặc chọn từ danh sách --</option>
                                 @foreach (var t in tables)
                                 {
                                     <option value="@t.TableId">@t.TableName (@t.Area - @t.Capacity chỗ - @(t.Status == "Available" ? "Đang trống" : t.Status))</option>
@@ -131,6 +152,16 @@
                             <label asp-for="CustomerPhone" class="form-label fw-bold small text-muted"></label>
                             <input asp-for="CustomerPhone" class="form-control rounded-3" placeholder="Số điện thoại nhận thông báo..." />
                             <span asp-validation-for="CustomerPhone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="VoucherCode" class="form-label fw-bold small text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-ticket-alt text-warning"></i></span>
+                                <input asp-for="VoucherCode" class="form-control text-uppercase" placeholder="Ví dụ: CHAOBAN" />
+                            </div>
+                            <span asp-validation-for="VoucherCode" class="text-danger small"></span>
+                            <small class="text-muted">Mức giảm chính xác được xác nhận khi đặt món.</small>
                         </div>
 
                         <!-- Phương thức thanh toán Cards -->
@@ -201,5 +232,20 @@
                 tableDiv.style.display = 'block';
             }
         }
+
+        function selectCheckoutTable(tableId) {
+            document.getElementById('tableSelectHidden').value = tableId;
+            document.querySelectorAll('.checkout-table-item').forEach(el => {
+                el.classList.remove('selected');
+                if (el.getAttribute('data-table-id') == tableId) {
+                    el.classList.add('selected');
+                }
+            });
+        }
+
+        // Tự động đồng bộ nếu người dùng chọn từ dropdown
+        document.getElementById('tableSelectHidden')?.addEventListener('change', function() {
+            selectCheckoutTable(this.value);
+        });
     </script>
 }

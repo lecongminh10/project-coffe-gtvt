@@ -32,6 +32,7 @@ public class CoffeeShopDbContext : DbContext
     // 4. Phân hệ quản lý nhân sự & ca trực
     public DbSet<Shift> Shifts { get; set; } = null!;
     public DbSet<EmployeeSchedule> EmployeeSchedules { get; set; } = null!;
+    public DbSet<StockTransaction> StockTransactions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +47,10 @@ public class CoffeeShopDbContext : DbContext
             .Property(o => o.TotalAmount)
             .HasPrecision(18, 2);
 
+        modelBuilder.Entity<Order>()
+            .Property(o => o.DiscountAmount)
+            .HasPrecision(18, 2);
+
         modelBuilder.Entity<OrderDetail>()
             .Property(od => od.UnitPrice)
             .HasPrecision(18, 2);
@@ -56,10 +61,14 @@ public class CoffeeShopDbContext : DbContext
 
         modelBuilder.Entity<Ingredient>()
             .Property(i => i.QuantityInStock)
-            .HasPrecision(18, 2);
+            .HasPrecision(18, 4);
 
         modelBuilder.Entity<Ingredient>()
             .Property(i => i.MinimumStock)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Ingredient>()
+            .Property(i => i.BaseUnitsPerStockUnit)
             .HasPrecision(18, 2);
 
         modelBuilder.Entity<Recipe>()
@@ -87,6 +96,32 @@ public class CoffeeShopDbContext : DbContext
         modelBuilder.Entity<Voucher>()
             .HasIndex(v => v.Code)
             .IsUnique();
+
+        modelBuilder.Entity<Recipe>()
+            .HasIndex(r => new { r.ProductId, r.IngredientId })
+            .IsUnique();
+
+        modelBuilder.Entity<Wishlist>()
+            .HasIndex(w => new { w.UserId, w.ProductId })
+            .IsUnique();
+
+        modelBuilder.Entity<EmployeeSchedule>()
+            .HasIndex(s => new { s.UserId, s.ShiftId, s.WorkDate })
+            .IsUnique();
+
+        modelBuilder.Entity<StockTransaction>()
+            .Property(s => s.Quantity)
+            .HasPrecision(18, 4);
+
+        modelBuilder.Entity<StockTransaction>()
+            .Property(s => s.BalanceAfter)
+            .HasPrecision(18, 4);
+
+        modelBuilder.Entity<StockTransaction>()
+            .HasOne(s => s.Order)
+            .WithMany()
+            .HasForeignKey(s => s.OrderId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Seed Categories
         modelBuilder.Entity<Category>().HasData(
@@ -173,16 +208,16 @@ public class CoffeeShopDbContext : DbContext
 
         // Seed Ingredients
         modelBuilder.Entity<Ingredient>().HasData(
-            new Ingredient { IngredientId = 1, Name = "Hạt Cà Phê Arabica Cầu Đất", Unit = "kg", QuantityInStock = 50, MinimumStock = 10, UnitPrice = 280000, SupplierId = 1 },
-            new Ingredient { IngredientId = 2, Name = "Hạt Cà Phê Robusta Buôn Ma Thuột", Unit = "kg", QuantityInStock = 80, MinimumStock = 15, UnitPrice = 160000, SupplierId = 1 },
-            new Ingredient { IngredientId = 3, Name = "Sữa Đặc Có Đường Ông Thọ", Unit = "hộp", QuantityInStock = 120, MinimumStock = 20, UnitPrice = 24000, SupplierId = 2 },
-            new Ingredient { IngredientId = 4, Name = "Sữa Tươi Thanh Trùng 100%", Unit = "lít", QuantityInStock = 60, MinimumStock = 15, UnitPrice = 35000, SupplierId = 2 },
-            new Ingredient { IngredientId = 5, Name = "Trà Đen Hương Đào Cao Cấp", Unit = "kg", QuantityInStock = 25, MinimumStock = 5, UnitPrice = 220000, SupplierId = 3 },
-            new Ingredient { IngredientId = 6, Name = "Đào Miếng Ngâm Nước Đường", Unit = "hộp", QuantityInStock = 45, MinimumStock = 10, UnitPrice = 42000, SupplierId = 3 },
-            new Ingredient { IngredientId = 7, Name = "Bột Trà Xanh Matcha Uji Nhật Bản", Unit = "kg", QuantityInStock = 15, MinimumStock = 3, UnitPrice = 650000, SupplierId = 3 },
-            new Ingredient { IngredientId = 8, Name = "Sốt Caramel Torani Nhập Khẩu", Unit = "chai", QuantityInStock = 20, MinimumStock = 5, UnitPrice = 185000, SupplierId = 3 },
-            new Ingredient { IngredientId = 9, Name = "Bột Cacao Nguyên Chất", Unit = "kg", QuantityInStock = 18, MinimumStock = 5, UnitPrice = 210000, SupplierId = 3 },
-            new Ingredient { IngredientId = 10, Name = "Cốc Giấy Take-away & Nắp Sinh Học", Unit = "cái", QuantityInStock = 2000, MinimumStock = 300, UnitPrice = 1500, SupplierId = 4 }
+            new Ingredient { IngredientId = 1, Name = "Hạt Cà Phê Arabica Cầu Đất", Unit = "kg", BaseUnit = "g", BaseUnitsPerStockUnit = 1000, QuantityInStock = 50, MinimumStock = 10, UnitPrice = 280000, SupplierId = 1 },
+            new Ingredient { IngredientId = 2, Name = "Hạt Cà Phê Robusta Buôn Ma Thuột", Unit = "kg", BaseUnit = "g", BaseUnitsPerStockUnit = 1000, QuantityInStock = 80, MinimumStock = 15, UnitPrice = 160000, SupplierId = 1 },
+            new Ingredient { IngredientId = 3, Name = "Sữa Đặc Có Đường Ông Thọ", Unit = "hộp", BaseUnit = "g", BaseUnitsPerStockUnit = 380, QuantityInStock = 120, MinimumStock = 20, UnitPrice = 24000, SupplierId = 2 },
+            new Ingredient { IngredientId = 4, Name = "Sữa Tươi Thanh Trùng 100%", Unit = "lít", BaseUnit = "ml", BaseUnitsPerStockUnit = 1000, QuantityInStock = 60, MinimumStock = 15, UnitPrice = 35000, SupplierId = 2 },
+            new Ingredient { IngredientId = 5, Name = "Trà Đen Hương Đào Cao Cấp", Unit = "kg", BaseUnit = "g", BaseUnitsPerStockUnit = 1000, QuantityInStock = 25, MinimumStock = 5, UnitPrice = 220000, SupplierId = 3 },
+            new Ingredient { IngredientId = 6, Name = "Đào Miếng Ngâm Nước Đường", Unit = "hộp", BaseUnit = "g", BaseUnitsPerStockUnit = 820, QuantityInStock = 45, MinimumStock = 10, UnitPrice = 42000, SupplierId = 3 },
+            new Ingredient { IngredientId = 7, Name = "Bột Trà Xanh Matcha Uji Nhật Bản", Unit = "kg", BaseUnit = "g", BaseUnitsPerStockUnit = 1000, QuantityInStock = 15, MinimumStock = 3, UnitPrice = 650000, SupplierId = 3 },
+            new Ingredient { IngredientId = 8, Name = "Sốt Caramel Torani Nhập Khẩu", Unit = "chai", BaseUnit = "ml", BaseUnitsPerStockUnit = 750, QuantityInStock = 20, MinimumStock = 5, UnitPrice = 185000, SupplierId = 3 },
+            new Ingredient { IngredientId = 9, Name = "Bột Cacao Nguyên Chất", Unit = "kg", BaseUnit = "g", BaseUnitsPerStockUnit = 1000, QuantityInStock = 18, MinimumStock = 5, UnitPrice = 210000, SupplierId = 3 },
+            new Ingredient { IngredientId = 10, Name = "Cốc Giấy Take-away & Nắp Sinh Học", Unit = "cái", BaseUnit = "cái", BaseUnitsPerStockUnit = 1, QuantityInStock = 2000, MinimumStock = 300, UnitPrice = 1500, SupplierId = 4 }
         );
 
         // Seed Recipes (Định lượng cho từng ly đồ uống)

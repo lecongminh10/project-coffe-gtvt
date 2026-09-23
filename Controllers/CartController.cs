@@ -4,6 +4,7 @@ using BaiTapLon.Data;
 using BaiTapLon.Helpers;
 using BaiTapLon.Models;
 using BaiTapLon.Models.ViewModels;
+using System.Data;
 
 namespace BaiTapLon.Controllers;
 
@@ -38,6 +39,7 @@ public class CartController : Controller
 
         // Danh sách bàn trống để khách hàng chọn nếu dùng tại quán
         ViewBag.AvailableTables = await _context.CoffeeTables
+            .Where(t => t.Status == "Available")
             .OrderBy(t => t.Area).ThenBy(t => t.TableName)
             .ToListAsync();
 
@@ -48,6 +50,8 @@ public class CartController : Controller
     [HttpPost]
     public async Task<IActionResult> AddToCartAjax(int productId, int quantity = 1)
     {
+        if (quantity < 1 || quantity > 100)
+            return Json(new { success = false, message = "Số lượng phải từ 1 đến 100." });
         var product = await _context.Products.FindAsync(productId);
         if (product == null || !product.IsAvailable)
         {
@@ -132,7 +136,7 @@ public class CartController : Controller
         if (cart == null || !cart.Any())
         {
             ModelState.AddModelError("", "Giỏ hàng của bạn đang trống.");
-            ViewBag.AvailableTables = await _context.CoffeeTables.ToListAsync();
+            ViewBag.AvailableTables = await _context.CoffeeTables.Where(t => t.Status == "Available").ToListAsync();
             model.Items = new List<CartItem>();
             return View("Index", model);
         }
@@ -140,7 +144,52 @@ public class CartController : Controller
         if (!ModelState.IsValid)
         {
             model.Items = cart;
-            ViewBag.AvailableTables = await _context.CoffeeTables.ToListAsync();
+            ViewBag.AvailableTables = await _context.CoffeeTables.Where(t => t.Status == "Available").ToListAsync();
+            return View("Index", model);
+        }
+
+        if (model.OrderType is not ("DineIn" or "TakeAway"))
+            ModelState.AddModelError(nameof(model.OrderType), "Hình thức phục vụ không hợp lệ.");
+        var paymentMethods = new[] { "Tiền mặt", "Chuyển khoản QR", "Ví MoMo" };
+        if (!paymentMethods.Contains(model.PaymentMethod))
+            ModelState.AddModelError(nameof(model.PaymentMethod), "Phương thức thanh toán không hợp lệ.");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+        CoffeeTable? selectedTable = null;
+        if (model.OrderType == "DineIn")
+        {
+            if (!model.TableId.HasValue)
+                ModelState.AddModelError(nameof(model.TableId), "Vui lòng chọn bàn.");
+            else
+            {
+                selectedTable = await _context.CoffeeTables.FirstOrDefaultAsync(t =>
+                    t.TableId == model.TableId && t.Status == "Available");
+                if (selectedTable == null)
+                    ModelState.AddModelError(nameof(model.TableId), "Bàn không còn trống, vui lòng chọn bàn khác.");
+            }
+        }
+
+        var subtotal = cart.Sum(c => c.TotalPrice);
+        Voucher? voucher = null;
+        decimal discount = 0;
+        if (!string.IsNullOrWhiteSpace(model.VoucherCode))
+        {
+            var code = model.VoucherCode.Trim().ToUpperInvariant();
+            var now = DateTime.Now;
+            voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == code && v.IsActive);
+            if (voucher == null || now < voucher.StartDate || now > voucher.EndDate || voucher.UsedCount >= voucher.UsageLimit)
+                ModelState.AddModelError(nameof(model.VoucherCode), "Mã giảm giá không tồn tại, hết hạn hoặc đã hết lượt.");
+            else if (subtotal < voucher.MinOrderAmount)
+                ModelState.AddModelError(nameof(model.VoucherCode), $"Đơn hàng tối thiểu {voucher.MinOrderAmount:N0}đ để dùng mã này.");
+            else
+                discount = Math.Min(subtotal * voucher.DiscountPercent / 100m, voucher.MaxDiscountAmount);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.Items = cart;
+            ViewBag.AvailableTables = await _context.CoffeeTables.Where(t => t.Status == "Available").ToListAsync();
             return View("Index", model);
         }
 
@@ -151,7 +200,9 @@ public class CartController : Controller
             CustomerName = model.CustomerName,
             CustomerPhone = model.CustomerPhone,
             TableId = model.OrderType == "DineIn" ? model.TableId : null,
-            TotalAmount = cart.Sum(c => c.TotalPrice),
+            TotalAmount = subtotal - discount,
+            VoucherCode = voucher?.Code,
+            DiscountAmount = discount,
             Status = "Pending",
             PaymentMethod = model.PaymentMethod,
             IsPaid = false,
@@ -183,15 +234,14 @@ public class CartController : Controller
         // Cập nhật trạng thái bàn nếu khách chọn ngồi tại bàn
         if (order.TableId.HasValue)
         {
-            var table = await _context.CoffeeTables.FindAsync(order.TableId.Value);
-            if (table != null)
-            {
-                table.Status = "Occupied";
-            }
+            selectedTable!.Status = "Occupied";
         }
+
+        if (voucher != null) voucher.UsedCount++;
 
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         // Xóa giỏ hàng trong Session sau khi đặt thành công
         HttpContext.Session.Remove(CART_SESSION_KEY);

@@ -3,83 +3,90 @@
     ViewData["Title"] = "Chỉnh Sửa Món";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-edit text-primary me-2"></i>Chỉnh Sửa Thông Tin Món</h1>
+        <h1 class="h3 mb-0 text-dark fw-bold"><i class="fas fa-edit text-primary me-2"></i>Chỉnh Sửa Món: @Model.Name</h1>
+        <p class="text-muted small mb-0">Cập nhật giá, mô tả, ảnh đại diện và trạng thái còn món.</p>
     </div>
-    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
         <i class="fas fa-arrow-left me-1"></i> Quay Lại
     </a>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-9 col-lg-8">
-        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
             <form asp-action="Edit" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="ProductId" />
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3"></div>
+                <input type="hidden" asp-for="ImageUrl" id="currentImageUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3 rounded-3"></div>
 
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label asp-for="Name" class="form-label fw-bold small text-muted"></label>
-                        <input asp-for="Name" class="form-control" />
-                        <span asp-validation-for="Name" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="CategoryId" class="form-label fw-bold small text-muted"></label>
-                        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories"></select>
-                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Price" class="form-label fw-bold small text-muted"></label>
-                        <div class="input-group">
-                            <input asp-for="Price" class="form-control" type="number" step="1000" />
-                            <span class="input-group-text">VNĐ</span>
+                <div class="row g-4">
+                    <!-- Cột thông tin chữ -->
+                    <div class="col-md-7">
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold small text-muted">Tên Món Đồ Uống</label>
+                            <input asp-for="Name" class="form-control rounded-3" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
-                        <span asp-validation-for="Price" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold small text-muted">Đổi Ảnh Món (Nếu muốn)</label>
-                        <input type="file" name="imageFile" class="form-control" accept="image/*" />
-                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                        {
-                            <div class="mt-2 d-flex align-items-center gap-2">
-                                <span class="small text-muted">Ảnh hiện tại:</span>
-                                <img src="@Model.ImageUrl" alt="@Model.Name" class="rounded border" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="CategoryId" class="form-label fw-bold small text-muted">Danh Mục</label>
+                                <select asp-for="CategoryId" class="form-select rounded-3" asp-items="ViewBag.Categories"></select>
+                                <span asp-validation-for="CategoryId" class="text-danger small"></span>
                             </div>
-                        }
-                    </div>
-                </div>
+                            <div class="col-md-6">
+                                <label asp-for="Price" class="form-label fw-bold small text-muted">Đơn Giá Bán</label>
+                                <div class="input-group">
+                                    <input asp-for="Price" class="form-control rounded-start-3" type="number" step="1000" />
+                                    <span class="input-group-text rounded-end-3">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+                        </div>
 
-                <div class="mb-3">
-                    <label asp-for="Description" class="form-label fw-bold small text-muted"></label>
-                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Description" class="text-danger small"></span>
-                </div>
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold small text-muted">Mô Tả Hương Vị & Thành Phần</label>
+                            <textarea asp-for="Description" class="form-control rounded-3" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input asp-for="IsAvailable" class="form-check-input" />
-                            <label asp-for="IsAvailable" class="form-check-label fw-bold text-muted small"></label>
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <div class="form-check form-switch p-3 bg-light rounded-3">
+                                    <input asp-for="IsAvailable" class="form-check-input ms-0 me-2" />
+                                    <label asp-for="IsAvailable" class="form-check-label fw-bold small text-dark">Sẵn Sàng Phục Vụ</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-check form-switch p-3 bg-light rounded-3">
+                                    <input asp-for="IsFeatured" class="form-check-input ms-0 me-2" />
+                                    <label asp-for="IsFeatured" class="form-check-label fw-bold small text-dark">Món Nổi Bật (Hot)</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input asp-for="IsFeatured" class="form-check-input" />
-                            <label asp-for="IsFeatured" class="form-check-label fw-bold text-muted small"></label>
+
+                    <!-- Cột xem và đổi ảnh -->
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold small text-muted">Ảnh Món Hiện Tại / Thay Đổi</label>
+                        <div class="image-upload-dropzone" onclick="document.getElementById('editImageInput').click()">
+                            <div class="image-upload-preview-box">
+                                <img id="editImagePreview" src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/products/ca-phe-den.jpg" : Model.ImageUrl)" alt="@Model.Name" onerror="this.src='/images/products/ca-phe-den.jpg'" />
+                            </div>
+                            <div class="fw-bold text-dark small mb-1"><i class="fas fa-camera me-1 text-warning"></i>Nhấn để thay đổi ảnh mới</div>
+                            <p class="text-muted" style="font-size: 0.75rem; margin-bottom: 0;">Nếu không chọn ảnh mới, hệ thống sẽ giữ nguyên ảnh hiện tại.</p>
+                            <input type="file" id="editImageInput" name="imageFile" class="d-none" accept="image/*" onchange="previewEditImage(this)" />
                         </div>
                     </div>
                 </div>
 
-                <div class="pt-3 border-top d-flex gap-2 justify-content-end">
-                    <a asp-action="Index" class="btn btn-light">Hủy</a>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="fas fa-save me-1"></i> Cập Nhật Món
+                <div class="pt-4 mt-3 border-top d-flex gap-2 justify-content-end">
+                    <a asp-action="Index" class="btn btn-light rounded-pill px-4">Hủy Bỏ</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">
+                        <i class="fas fa-save me-1"></i> Lưu Cập Nhật
                     </button>
                 </div>
             </form>
@@ -89,4 +96,15 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewEditImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editImagePreview').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 }

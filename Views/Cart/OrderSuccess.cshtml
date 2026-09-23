@@ -5,77 +5,114 @@
 
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card border-0 shadow-lg rounded-4 text-center p-4 p-md-5 bg-white position-relative overflow-hidden">
-                <!-- Top gradient stripe -->
-                <div style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #10b981, #f59e0b);"></div>
-
-                <div class="my-3">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success mb-2" style="width: 84px; height: 84px;">
-                        <i class="fas fa-check fa-3x"></i>
+        <div class="col-md-9 col-lg-7">
+            <div class="receipt-ticket-card">
+                <!-- Header phiếu thanh toán -->
+                <div class="receipt-ticket-header">
+                    <div class="receipt-status-pill">
+                        <i class="fas fa-check-circle"></i> Đặt Món Thành Công
+                    </div>
+                    <h3 class="fw-bold mb-1">Brew & Go Coffee</h3>
+                    <p class="text-white-50 small mb-0">Hóa đơn điện tử gọi món thông minh</p>
+                    <div class="mt-3 badge bg-white bg-opacity-15 text-white px-3 py-2 rounded-pill fs-6">
+                        Mã đơn: <strong>#@Model.OrderId</strong>
                     </div>
                 </div>
 
-                <h3 class="fw-bold text-dark mb-1">Đặt Món Thành Công!</h3>
-                <p class="text-muted small mb-4">Cảm ơn bạn đã lựa chọn trải nghiệm tại Coffee Paradise.</p>
+                <div class="receipt-perforated-divider"></div>
 
-                <!-- Digital Receipt Box -->
-                <div class="p-4 rounded-4 text-start mb-4 border" style="background: var(--coffee-cream); border-style: dashed !important; border-color: var(--coffee-cream-dark) !important;">
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <span class="fw-bold text-uppercase small text-muted">Hóa Đơn Điện Tử</span>
-                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold">#@Model.OrderId</span>
+                <div class="p-4 p-md-5">
+                    <!-- Thông tin chung -->
+                    <div class="row g-3 mb-4 pb-3 border-bottom">
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Khách hàng:</span>
+                            <strong class="text-dark">@Model.CustomerName</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted small d-block">Số điện thoại:</span>
+                            <span class="text-dark">@Model.CustomerPhone</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Vị trí phục vụ:</span>
+                            <span class="badge bg-warning bg-opacity-20 text-dark fw-bold">
+                                <i class="fas fa-chair me-1"></i>
+                                @(Model.Table != null ? $"{Model.Table.TableName} ({Model.Table.Area})" : "Mang về (Take-Away)")
+                            </span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="text-muted small d-block">Thời gian:</span>
+                            <span class="text-dark small">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted small d-block">Phương thức thanh toán:</span>
+                            <span class="badge bg-info bg-opacity-15 text-primary fw-bold">
+                                <i class="fas fa-wallet me-1"></i> @Model.PaymentMethod
+                            </span>
+                            @if (!string.IsNullOrEmpty(Model.Notes))
+                            {
+                                <div class="mt-2 p-2 bg-light rounded text-muted small">
+                                    <i class="fas fa-comment-alt me-1 text-warning"></i> Ghi chú: @Model.Notes
+                                </div>
+                            }
+                        </div>
                     </div>
 
-                    <div class="d-flex justify-content-between py-1 small">
-                        <span class="text-muted">Khách hàng:</span>
-                        <span class="fw-bold text-dark">@Model.CustomerName</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 small">
-                        <span class="text-muted">Số điện thoại:</span>
-                        <span class="text-dark">@Model.CustomerPhone</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 small">
-                        <span class="text-muted">Hình thức / Bàn:</span>
-                        <span class="fw-bold text-primary">@(Model.Table != null ? $"{Model.Table.TableName} ({Model.Table.Area})" : "Mang về (Take-away)")</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 small">
-                        <span class="text-muted">Thời gian đặt:</span>
-                        <span class="text-dark">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 small">
-                        <span class="text-muted">Trạng thái:</span>
-                        <span class="badge bg-warning text-dark">@Model.Status (Quầy đang xử lý)</span>
-                    </div>
-
-                    <hr class="my-3 border-secondary border-opacity-25" />
-
-                    <!-- Danh sách món đã đặt -->
-                    <h6 class="fw-bold mb-2 text-muted small text-uppercase">Danh sách món:</h6>
-                    <div class="d-flex flex-column gap-2 mb-3">
+                    <!-- Bảng danh sách món -->
+                    <h6 class="fw-bold text-uppercase small text-muted mb-3">Chi tiết món đã gọi</h6>
+                    <div class="d-flex flex-column gap-2 mb-4">
                         @foreach (var d in Model.OrderDetails)
                         {
-                            <div class="d-flex justify-content-between align-items-center small">
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
                                 <div>
-                                    <span class="fw-bold text-dark">@d.Quantity x</span> @(d.Product?.Name ?? $"Món #{d.ProductId}")
+                                    <span class="badge bg-dark rounded-circle px-2 py-1 me-2" style="font-size: 0.75rem;">@d.Quantity</span>
+                                    <strong class="text-dark">@(d.Product?.Name ?? $"Món #{d.ProductId}")</strong>
                                 </div>
-                                <span class="fw-semibold text-muted">@((d.UnitPrice * d.Quantity).ToString("N0")) đ</span>
+                                <span class="fw-bold text-dark">@((d.UnitPrice * d.Quantity).ToString("N0")) đ</span>
                             </div>
                         }
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                        <span class="fw-bold fs-6 text-dark">Tổng tiền:</span>
-                        <span class="fw-bold fs-5" style="color: var(--coffee-primary);">@Model.TotalAmount.ToString("N0") VNĐ</span>
+                    <!-- Tổng thanh toán -->
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="d-flex justify-content-between text-success mb-2">
+                            <span>Voucher <strong>@Model.VoucherCode</strong>:</span>
+                            <span>-@Model.DiscountAmount.ToString("N0") VNĐ</span>
+                        </div>
+                    }
+                    <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold text-dark fs-6">Tổng cộng thanh toán:</span>
+                        <span class="fw-bold fs-4" style="color: var(--brand-primary);">@Model.TotalAmount.ToString("N0") VNĐ</span>
                     </div>
-                </div>
 
-                <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a asp-controller="Home" asp-action="Index" class="btn-coffee-outline">
-                        <i class="fas fa-home me-1"></i> Về Trang Chủ
-                    </a>
-                    <a asp-controller="Product" asp-action="Index" class="btn-coffee-amber">
-                        <i class="fas fa-book-open me-1"></i> Đặt Thêm Món
-                    </a>
+                    <!-- Nếu chọn thanh toán Chuyển khoản QR -->
+                    @if (Model.PaymentMethod != null && Model.PaymentMethod.Contains("QR"))
+                    {
+                        <div class="vietqr-mockup-box mb-4">
+                            <h6 class="fw-bold text-dark mb-1"><i class="fas fa-qrcode text-primary me-2"></i>Mã VietQR Chuyển Khoản Nhanh</h6>
+                            <p class="text-muted small mb-3">Quét mã bằng ứng dụng ngân hàng để thanh toán tự động</p>
+                            <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm mb-2">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=BREW_AND_GO_ORDER_@(Model.OrderId)_AMOUNT_@(Model.TotalAmount)" 
+                                     alt="VietQR Code" class="img-fluid" style="width: 160px; height: 160px;" />
+                            </div>
+                            <div class="small text-muted">
+                                Nội dung CK: <strong class="text-dark">BREWGO @Model.OrderId</strong>
+                            </div>
+                            <div class="alert alert-warning small mt-2 mb-0">Mã QR minh họa; quán cần cấu hình tài khoản ngân hàng/VietQR thật trước khi nhận thanh toán.</div>
+                        </div>
+                    }
+
+                    <div class="d-flex gap-3 justify-content-center flex-wrap pt-2">
+                        <a asp-controller="Home" asp-action="Index" class="btn-coffee-outline">
+                            <i class="fas fa-home me-1"></i> Trang Chủ
+                        </a>
+                        <a asp-controller="Product" asp-action="Index" class="btn-coffee-amber">
+                            <i class="fas fa-mug-hot me-1"></i> Đặt Thêm Món
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i> In Hóa Đơn
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

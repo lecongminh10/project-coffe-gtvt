@@ -17,7 +17,14 @@ public class Ingredient
     [StringLength(30)]
     public string Unit { get; set; } = "kg"; // kg, lít, hộp, gói
 
+    [Required]
+    [StringLength(30)]
+    public string BaseUnit { get; set; } = "g"; // g, ml, cái
+
     [Column(TypeName = "decimal(18,2)")]
+    public decimal BaseUnitsPerStockUnit { get; set; } = 1000; // 1 kg = 1000 g
+
+    [Column(TypeName = "decimal(18,4)")]
     public decimal QuantityInStock { get; set; } = 0;
 
     [Column(TypeName = "decimal(18,2)")]
@@ -32,5 +39,6 @@ public class Ingredient
     [ForeignKey("SupplierId")]
     public virtual Supplier? Supplier { get; set; }
 
-    public virtual ICollection<Recipe>? Recipes { get; set; }
+    public virtual ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
+    public virtual ICollection<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>();
 }

@@ -5,16 +5,16 @@
 
 <div class="container my-4">
     <!-- Header Banner -->
-    <div class="hero-coffee-banner p-4 p-md-5 mb-4 rounded-4" style="background: linear-gradient(135deg, rgba(35, 20, 12, 0.95), rgba(74, 44, 26, 0.9)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80') center/cover;">
+    <div class="hero-coffee-banner p-4 p-md-5 mb-4 rounded-4" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80') center/cover;">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Thực Đơn Đặc Sắc</span>
+                <span class="badge px-3 py-1 rounded-pill fw-bold mb-2 text-white" style="background: var(--brand-primary);">✨ Khám Phá Menu</span>
                 <h1 class="fw-bold mb-2 text-white">Thực Đơn Đồ Uống & Tráng Miệng</h1>
-                <p class="mb-0 text-white-50">Thưởng thức hương vị nguyên bản từ hạt cà phê tuyển chọn & các món đá xay, trà trái cây tươi mát mỗi ngày.</p>
+                <p class="mb-0 text-white-50">Thưởng thức hương vị nguyên bản từ hạt cà phê tuyển chọn & các món trà trái cây tươi mát, đá xay thơm ngon mỗi ngày.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <a asp-controller="Cart" asp-action="Index" class="btn-coffee-amber">
-                    <i class="fas fa-shopping-bag"></i> Giỏ Hàng
+                    <i class="fas fa-shopping-bag"></i> Giỏ Hàng Của Bạn
                 </a>
             </div>
         </div>
@@ -40,11 +40,11 @@
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" id="searchKeyword" class="form-control border-start-0 border-end-0" 
-                           placeholder="Tìm tên món: Cà phê sữa, Trà đào, Latte..." 
+                           placeholder="Tìm tên món: Cà phê muối, Trà đào, Latte..." 
                            value="@Model.SearchKeyword" 
                            onkeyup="if(event.key === 'Enter') executeSearch()" />
                     <button class="btn btn-coffee-primary rounded-end-pill px-4" type="button" onclick="executeSearch()">
-                        Tìm
+                        Tìm Kiếm
                     </button>
                     @if (!string.IsNullOrEmpty(Model.SearchKeyword) || Model.SelectedCategoryId != null)
                     {
@@ -65,6 +65,14 @@
                     </select>
                 </div>
             </div>
+        </div>
+        <!-- Quick search tags -->
+        <div class="d-flex align-items-center gap-2 mt-3 pt-2 border-top flex-wrap">
+            <span class="text-muted small fw-bold"><i class="fas fa-bolt text-warning me-1"></i> Gợi ý nhanh:</span>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 small" onclick="document.getElementById('searchKeyword').value='Cà phê'; executeSearch();">☕ Cà phê</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 small" onclick="document.getElementById('searchKeyword').value='Trà'; executeSearch();">🍵 Trà hoa quả</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 small" onclick="document.getElementById('searchKeyword').value='Latte'; executeSearch();">🥛 Latte</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 small" onclick="document.getElementById('searchKeyword').value='Bánh'; executeSearch();">🥐 Bánh ngọt</button>
         </div>
     </div>
 

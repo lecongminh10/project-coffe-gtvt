@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BaiTapLon.Data;
+using BaiTapLon.Services;
+using System.Data;
 
 namespace BaiTapLon.Areas.Admin.Controllers;
 
@@ -10,10 +12,12 @@ namespace BaiTapLon.Areas.Admin.Controllers;
 public class OrderController : Controller
 {
     private readonly CoffeeShopDbContext _context;
+    private readonly InventoryService _inventoryService;
 
-    public OrderController(CoffeeShopDbContext context)
+    public OrderController(CoffeeShopDbContext context, InventoryService inventoryService)
     {
         _context = context;
+        _inventoryService = inventoryService;
     }
 
     // GET: /Admin/Order
@@ -57,9 +61,32 @@ public class OrderController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int orderId, string status, bool isPaid)
     {
-        var order = await _context.Orders.Include(o => o.Table).FirstOrDefaultAsync(o => o.OrderId == orderId);
+        var allowedStatuses = new[] { "Pending", "Processing", "Completed", "Cancelled" };
+        if (!allowedStatuses.Contains(status)) return BadRequest("Trạng thái đơn hàng không hợp lệ.");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var order = await _context.Orders
+            .Include(o => o.Table)
+            .Include(o => o.OrderDetails)
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
         if (order != null)
         {
+            if ((status == "Processing" || status == "Completed") && !order.InventoryDeducted)
+            {
+                var inventoryResult = await _inventoryService.DeductForOrderAsync(order);
+                if (!inventoryResult.Success)
+                {
+                    TempData["ErrorMessage"] = inventoryResult.Message;
+                    return RedirectToAction(nameof(Details), new { id = orderId });
+                }
+                TempData["InventoryMessage"] = inventoryResult.Message;
+            }
+            else if (status == "Cancelled" && order.InventoryDeducted)
+            {
+                var inventoryResult = await _inventoryService.RestoreForOrderAsync(order);
+                TempData["InventoryMessage"] = inventoryResult.Message;
+            }
+
             order.Status = status;
             order.IsPaid = isPaid;
 
@@ -74,6 +101,7 @@ public class OrderController : Controller
             }
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             TempData["SuccessMessage"] = $"Đã cập nhật trạng thái đơn #{order.OrderId} thành: {status}";
         }
 
@@ -86,9 +114,16 @@ public class OrderController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        var order = await _context.Orders.FindAsync(id);
+        var order = await _context.Orders
+            .Include(o => o.OrderDetails)
+            .FirstOrDefaultAsync(o => o.OrderId == id);
         if (order != null)
         {
+            if (order.InventoryDeducted)
+            {
+                await _inventoryService.RestoreForOrderAsync(order);
+                await _context.SaveChangesAsync();
+            }
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Đã xóa đơn hàng #{id} khỏi hệ thống!";

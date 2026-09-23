@@ -4,31 +4,37 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>@ViewData["Title"] - Quản Trị Quán Café</title>
+    <title>@ViewData["Title"] - Brew & Go Management</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="~/css/admin-styles.css" rel="stylesheet" />
+    <link href="~/css/admin-custom.css" rel="stylesheet" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-        body, .sb-nav-fixed { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important; }
-        .card { border-radius: 14px; }
-    </style>
 </head>
 <body class="sb-nav-fixed">
     <!-- Top Navbar -->
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->
         <a class="navbar-brand ps-3 fw-bold" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-            <i class="fas fa-coffee text-warning me-2"></i>Coffee Admin
+            <i class="fas fa-mug-hot text-warning"></i>
+            <span>Brew & Go</span>
+            @if (User.IsInRole("Admin"))
+            {
+                <span class="badge bg-danger rounded-pill px-2 py-1 ms-1" style="font-size: 0.65rem;">ADMIN</span>
+            }
+            else
+            {
+                <span class="badge bg-success rounded-pill px-2 py-1 ms-1" style="font-size: 0.65rem;">STAFF</span>
+            }
         </a>
         <!-- Sidebar Toggle-->
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 text-white" id="sidebarToggle" href="#!">
             <i class="fas fa-bars"></i>
         </button>
-        <!-- Navbar Search-->
+        <!-- Navbar Search / Live View Shortcut -->
         <div class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-light" target="_blank">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-warning rounded-pill px-3" target="_blank">
                 <i class="fas fa-external-link-alt me-1"></i> Xem Trang Khách Hàng
             </a>
         </div>
@@ -36,11 +42,13 @@
         <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-user-shield text-warning"></i>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center @(User.IsInRole("Admin") ? "bg-danger text-white" : "bg-success text-white") fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
                     <span>@(User.Identity?.Name ?? "Quản trị")</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
-                    <li><span class="dropdown-item-text text-muted small">Quyền: <strong>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Admin")</strong></span></li>
+                    <li><span class="dropdown-item-text text-muted small">Vai trò: <strong>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Admin")</strong></span></li>
                     <li><hr class="dropdown-divider" /></li>
                     <li>
                         <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
@@ -61,61 +69,58 @@
             <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                 <div class="sb-sidenav-menu">
                     <div class="nav">
-                        <div class="sb-sidenav-menu-heading">Tổng Quan</div>
+                        <!-- TỔNG QUAN -->
+                        <div class="sb-sidenav-menu-heading">Hoạt Động Chung</div>
                         <a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt text-warning"></i></div>
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-line text-warning"></i></div>
                             Bảng Thống Kê
                         </a>
 
-                        <div class="sb-sidenav-menu-heading">Quản Lý Thực Đơn</div>
-                        <a class="nav-link" asp-area="Admin" asp-controller="Category" asp-action="Index">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tags text-info"></i></div>
-                            Danh Mục Món
-                        </a>
-                        <a class="nav-link" asp-area="Admin" asp-controller="Product" asp-action="Index">
-                            <div class="sb-nav-link-icon"><i class="fas fa-mug-hot text-danger"></i></div>
-                            Món Ăn & Đồ Uống
-                        </a>
-
-                        <div class="sb-sidenav-menu-heading">Vận Hành & Phục Vụ</div>
+                        <!-- VẬN HÀNH QUẦY (STAFF & ADMIN) -->
+                        <div class="sb-sidenav-menu-heading text-warning">
+                            <i class="fas fa-cash-register me-1"></i> Vận Hành Quầy Bar
+                        </div>
                         <a class="nav-link" asp-area="Admin" asp-controller="Table" asp-action="Index">
                             <div class="sb-nav-link-icon"><i class="fas fa-chair text-success"></i></div>
-                            Sơ Đồ Bàn Quán
+                            Sơ Đồ Bàn Quầy (POS)
                         </a>
                         <a class="nav-link" asp-area="Admin" asp-controller="Order" asp-action="Index">
                             <div class="sb-nav-link-icon"><i class="fas fa-receipt text-primary"></i></div>
-                            Đơn Hàng & Hóa Đơn
+                            Tiếp Nhận Đơn Hàng (KDS)
+                        </a>
+                        <a class="nav-link" asp-area="Admin" asp-controller="Workforce" asp-action="Index">
+                            <div class="sb-nav-link-icon"><i class="fas fa-user-clock text-info"></i></div>
+                            Lịch Làm & Chấm Công
                         </a>
 
-                        <div class="sb-sidenav-menu-heading">Kho & Nguyên Vật Liệu</div>
-                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Nhà Cung Cấp & Nguyên Liệu (4 Nhà cung cấp, 10 Nguyên liệu trong database)')">
-                            <div class="sb-nav-link-icon"><i class="fas fa-boxes text-warning"></i></div>
-                            Kho Nguyên Liệu
-                        </a>
-                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Công Thức Pha Chế Định Lượng (10 Recipes trong database)')">
-                            <div class="sb-nav-link-icon"><i class="fas fa-blender text-info"></i></div>
-                            Công Thức Pha Chế
-                        </a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <!-- QUẢN LÝ THỰC ĐƠN (ADMIN ONLY) -->
+                            <div class="sb-sidenav-menu-heading">Quản Trị Thực Đơn</div>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Category" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tags text-info"></i></div>
+                                Danh Mục Đồ Uống
+                            </a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Product" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-mug-hot text-danger"></i></div>
+                                Món Ăn & Đồ Uống
+                            </a>
 
-                        <div class="sb-sidenav-menu-heading">Khách Hàng & Tiếp Thị</div>
-                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Mã Giảm Giá & Voucher (4 Mã khuyến mãi kích hoạt trong database)')">
-                            <div class="sb-nav-link-icon"><i class="fas fa-ticket-alt text-danger"></i></div>
-                            Mã Khuyến Mãi (Voucher)
-                        </a>
-                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Đánh Giá & Nhận Xét (5 Reviews sao trong database)')">
-                            <div class="sb-nav-link-icon"><i class="fas fa-star text-warning"></i></div>
-                            Đánh Giá (Reviews)
-                        </a>
-                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Tin Tức & Bài Viết (3 Bài viết chuẩn SEO trong database)')">
-                            <div class="sb-nav-link-icon"><i class="fas fa-newspaper text-primary"></i></div>
-                            Tin Tức & Sự Kiện
-                        </a>
-
-                        <div class="sb-sidenav-menu-heading">Nhân Sự & Ca Trực</div>
-                        <a class="nav-link" href="javascript:void(0)" onclick="alert('Module Phân Ca & Lịch Làm Việc (3 Ca trực & Lịch phân công trong database)')">
-                            <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt text-success"></i></div>
-                            Phân Ca Làm Việc
-                        </a>
+                            <!-- DỮ LIỆU MỞ RỘNG (ADMIN) -->
+                            <div class="sb-sidenav-menu-heading">Hệ Thống F&B Mở Rộng</div>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Inventory" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-boxes text-warning"></i></div>
+                                Kho & Nguyên Liệu
+                            </a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Recipe" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-blender text-info"></i></div>
+                                Công Thức Định Lượng
+                            </a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Voucher" asp-action="Index"><div class="sb-nav-link-icon"><i class="fas fa-ticket-alt text-danger"></i></div>Voucher</a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Review" asp-action="Index"><div class="sb-nav-link-icon"><i class="fas fa-star text-warning"></i></div>Duyệt Đánh Giá</a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="News" asp-action="Index"><div class="sb-nav-link-icon"><i class="fas fa-newspaper text-primary"></i></div>Tin Tức</a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="Index"><div class="sb-nav-link-icon"><i class="fas fa-users-cog text-success"></i></div>Tài Khoản</a>
+                        }
 
                         <div class="sb-sidenav-menu-heading">Hệ Thống</div>
                         <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
@@ -125,8 +130,9 @@
                     </div>
                 </div>
                 <div class="sb-sidenav-footer">
-                    <div class="small">Đang đăng nhập bằng:</div>
-                    <strong>@(User.Identity?.Name ?? "Admin")</strong> (MySQL Engine)
+                    <div class="small">Tài khoản đăng nhập:</div>
+                    <strong class="text-warning">@(User.Identity?.Name ?? "User")</strong> 
+                    <span class="badge @(User.IsInRole("Admin") ? "bg-danger" : "bg-success") ms-1">@(User.IsInRole("Admin") ? "Admin" : "Nhân viên")</span>
                 </div>
             </nav>
         </div>
@@ -136,27 +142,31 @@
             <main class="p-4">
                 @if (TempData["SuccessMessage"] != null)
                 {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
                         <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
                 @if (TempData["ErrorMessage"] != null)
                 {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm" role="alert">
                         <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
+                }
+                @if (TempData["InventoryMessage"] != null)
+                {
+                    <div class="alert alert-info rounded-3 shadow-sm"><i class="fas fa-boxes me-2"></i>@TempData["InventoryMessage"]</div>
                 }
 
                 @RenderBody()
             </main>
 
-            <footer class="py-3 bg-light mt-auto border-top">
+            <footer class="py-3 bg-white mt-auto border-top">
                 <div class="container-fluid px-4">
                     <div class="d-flex align-items-center justify-content-between small text-muted">
-                        <div>&copy; @DateTime.Now.Year Coffee Paradise - Phân hệ Quản trị Admin/Staff</div>
-                        <div>Hệ thống kết nối MySQL qua EF Core Code First</div>
+                        <div>&copy; @DateTime.Now.Year <strong>Brew & Go Coffee</strong> - Bảng điều khiển Quản trị & Vận hành quầy.</div>
+                        <div>Hệ thống ASP.NET Core MVC & MySQL Code First</div>
                     </div>
                 </div>
             </footer>

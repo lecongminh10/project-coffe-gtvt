@@ -36,6 +36,10 @@ public class CartViewModel
     [Display(Name = "Phương thức thanh toán")]
     public string PaymentMethod { get; set; } = "Tiền mặt";
 
+    [StringLength(50)]
+    [Display(Name = "Mã giảm giá")]
+    public string? VoucherCode { get; set; }
+
     [Display(Name = "Ghi chú thêm (ít đường, nhiều đá, v.v.)")]
     public string? Notes { get; set; }
 }

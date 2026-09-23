@@ -205,6 +205,12 @@ namespace BaiTapLon.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ScheduleId"));
 
+                    b.Property<DateTime?>("CheckInTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("CheckOutTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Note")
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
@@ -227,7 +233,8 @@ namespace BaiTapLon.Migrations
 
                     b.HasIndex("ShiftId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ShiftId", "WorkDate")
+                        .IsUnique();
 
                     b.ToTable("EmployeeSchedules");
 
@@ -269,6 +276,15 @@ namespace BaiTapLon.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IngredientId"));
 
+                    b.Property<string>("BaseUnit")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<decimal>("BaseUnitsPerStockUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("MinimumStock")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -279,8 +295,8 @@ namespace BaiTapLon.Migrations
                         .HasColumnType("varchar(100)");
 
                     b.Property<decimal>("QuantityInStock")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int?>("SupplierId")
                         .HasColumnType("int");
@@ -304,6 +320,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 1,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 1000m,
                             MinimumStock = 10m,
                             Name = "Hạt Cà Phê Arabica Cầu Đất",
                             QuantityInStock = 50m,
@@ -314,6 +332,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 2,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 1000m,
                             MinimumStock = 15m,
                             Name = "Hạt Cà Phê Robusta Buôn Ma Thuột",
                             QuantityInStock = 80m,
@@ -324,6 +344,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 3,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 380m,
                             MinimumStock = 20m,
                             Name = "Sữa Đặc Có Đường Ông Thọ",
                             QuantityInStock = 120m,
@@ -334,6 +356,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 4,
+                            BaseUnit = "ml",
+                            BaseUnitsPerStockUnit = 1000m,
                             MinimumStock = 15m,
                             Name = "Sữa Tươi Thanh Trùng 100%",
                             QuantityInStock = 60m,
@@ -344,6 +368,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 5,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 1000m,
                             MinimumStock = 5m,
                             Name = "Trà Đen Hương Đào Cao Cấp",
                             QuantityInStock = 25m,
@@ -354,6 +380,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 6,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 820m,
                             MinimumStock = 10m,
                             Name = "Đào Miếng Ngâm Nước Đường",
                             QuantityInStock = 45m,
@@ -364,6 +392,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 7,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 1000m,
                             MinimumStock = 3m,
                             Name = "Bột Trà Xanh Matcha Uji Nhật Bản",
                             QuantityInStock = 15m,
@@ -374,6 +404,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 8,
+                            BaseUnit = "ml",
+                            BaseUnitsPerStockUnit = 750m,
                             MinimumStock = 5m,
                             Name = "Sốt Caramel Torani Nhập Khẩu",
                             QuantityInStock = 20m,
@@ -384,6 +416,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 9,
+                            BaseUnit = "g",
+                            BaseUnitsPerStockUnit = 1000m,
                             MinimumStock = 5m,
                             Name = "Bột Cacao Nguyên Chất",
                             QuantityInStock = 18m,
@@ -394,6 +428,8 @@ namespace BaiTapLon.Migrations
                         new
                         {
                             IngredientId = 10,
+                            BaseUnit = "cái",
+                            BaseUnitsPerStockUnit = 1m,
                             MinimumStock = 300m,
                             Name = "Cốc Giấy Take-away & Nắp Sinh Học",
                             QuantityInStock = 2000m,
@@ -510,6 +546,13 @@ namespace BaiTapLon.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("varchar(15)");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("InventoryDeducted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsPaid")
                         .HasColumnType("tinyint(1)");
 
@@ -539,6 +582,10 @@ namespace BaiTapLon.Migrations
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("VoucherCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("OrderId");
 
@@ -780,7 +827,8 @@ namespace BaiTapLon.Migrations
 
                     b.HasIndex("IngredientId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductId", "IngredientId")
+                        .IsUnique();
 
                     b.ToTable("Recipes");
 
@@ -1014,6 +1062,49 @@ namespace BaiTapLon.Migrations
                             ShiftName = "Ca Tối (Chill & Dọn Dẹp)",
                             StartTime = new TimeSpan(0, 17, 30, 0, 0)
                         });
+                });
+
+            modelBuilder.Entity("BaiTapLon.Models.StockTransaction", b =>
+                {
+                    b.Property<int>("StockTransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("StockTransactionId"));
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("StockTransactionId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("StockTransactions");
                 });
 
             modelBuilder.Entity("BaiTapLon.Models.Supplier", b =>
@@ -1291,7 +1382,8 @@ namespace BaiTapLon.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("Wishlists");
 
@@ -1410,7 +1502,7 @@ namespace BaiTapLon.Migrations
                         .IsRequired();
 
                     b.HasOne("BaiTapLon.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("Recipes")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1423,7 +1515,7 @@ namespace BaiTapLon.Migrations
             modelBuilder.Entity("BaiTapLon.Models.Review", b =>
                 {
                     b.HasOne("BaiTapLon.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("Reviews")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1435,6 +1527,24 @@ namespace BaiTapLon.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BaiTapLon.Models.StockTransaction", b =>
+                {
+                    b.HasOne("BaiTapLon.Models.Ingredient", "Ingredient")
+                        .WithMany("StockTransactions")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BaiTapLon.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("BaiTapLon.Models.Wishlist", b =>
@@ -1469,6 +1579,8 @@ namespace BaiTapLon.Migrations
             modelBuilder.Entity("BaiTapLon.Models.Ingredient", b =>
                 {
                     b.Navigation("Recipes");
+
+                    b.Navigation("StockTransactions");
                 });
 
             modelBuilder.Entity("BaiTapLon.Models.Order", b =>
@@ -1479,6 +1591,10 @@ namespace BaiTapLon.Migrations
             modelBuilder.Entity("BaiTapLon.Models.Product", b =>
                 {
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("Recipes");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("BaiTapLon.Models.Shift", b =>

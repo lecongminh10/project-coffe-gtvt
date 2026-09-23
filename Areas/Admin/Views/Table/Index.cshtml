@@ -1,131 +1,166 @@
 @model IEnumerable<BaiTapLon.Models.CoffeeTable>
 @{
-    ViewData["Title"] = "Sơ Đồ Bàn Quán Café";
+    ViewData["Title"] = "Sơ Đồ Bàn Quầy (POS)";
     var areas = Model.Select(t => t.Area).Distinct().ToList();
+    int availCount = Model.Count(t => t.Status == "Available");
+    int occCount = Model.Count(t => t.Status == "Occupied");
+    int resCount = Model.Count(t => t.Status == "Reserved");
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h1 class="h3 mb-0 text-gray-800 fw-bold"><i class="fas fa-chair text-success me-2"></i>Sơ Đồ Bàn & Tình Trạng Phục Vụ</h1>
-        <p class="text-muted small mb-0">Theo dõi bàn trống, bàn đang có khách và đổi trạng thái phục vụ nhanh chóng.</p>
+        <h1 class="h3 mb-0 text-dark fw-bold"><i class="fas fa-chair text-success me-2"></i>Sơ Đồ Bàn Quầy (Floor Plan POS)</h1>
+        <p class="text-muted small mb-0">Theo dõi trạng thái phục vụ và đổi trạng thái bàn nhanh chóng bằng 1 chạm.</p>
     </div>
-    @if (User.IsInRole("Admin"))
-    {
-        <button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#createTableModal">
-            <i class="fas fa-plus me-1"></i> Thêm Bàn Mới
-        </button>
-    }
-</div>
-
-<!-- Chú thích màu sắc -->
-<div class="card border-0 shadow-sm rounded-3 bg-white p-3 mb-4">
-    <div class="d-flex flex-wrap gap-4 align-items-center small">
-        <span class="fw-bold text-muted">Chú thích:</span>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-success p-2"></span> <strong>Available:</strong> Bàn Đang Trống (Sẵn sàng đón khách)
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-danger p-2"></span> <strong>Occupied:</strong> Đang Có Khách (Đang phục vụ)
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-warning p-2"></span> <strong>Reserved:</strong> Đã Đặt Trước
-        </div>
+    <div class="d-flex gap-2">
+        @if (User.IsInRole("Admin"))
+        {
+            <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#createTableModal">
+                <i class="fas fa-plus me-1"></i> Thêm Bàn Mới
+            </button>
+        }
     </div>
 </div>
 
-<!-- Danh sách bàn phân theo Khu vực -->
+<!-- Thống kê nhanh & Chú thích trạng thái -->
+<div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-4">
+    <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <span class="badge bg-light text-muted fw-bold">Tổng số: @Model.Count() bàn</span>
+            <div class="d-flex align-items-center gap-1">
+                <span class="status-pulse-dot" style="background-color: var(--status-available);"></span>
+                <span class="small fw-bold text-success">@availCount Bàn Trống (Available)</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <span class="status-pulse-dot" style="background-color: var(--status-occupied);"></span>
+                <span class="small fw-bold text-danger">@occCount Đang Phục Vụ (Occupied)</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <span class="status-pulse-dot" style="background-color: var(--status-reserved);"></span>
+                <span class="small fw-bold text-warning">@resCount Đã Đặt Trước (Reserved)</span>
+            </div>
+        </div>
+        <small class="text-muted"><i class="fas fa-mouse-pointer me-1 text-warning"></i>Nhấn nút bên dưới mỗi bàn để cập nhật ngay</small>
+    </div>
+</div>
+
+<!-- Lưới bàn phân chia theo từng Khu Vực -->
 @foreach (var area in areas)
 {
     var tablesInArea = Model.Where(t => t.Area == area).ToList();
-    <div class="mb-4">
-        <h5 class="fw-bold text-dark border-bottom pb-2">
-            <i class="fas fa-map-pin text-primary me-2"></i>Khu Vực: @area (@tablesInArea.Count bàn)
-        </h5>
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 mt-1">
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-layer-group text-warning me-2"></i>Khu Vực: @area
+            </h5>
+            <span class="badge bg-light text-dark rounded-pill px-3 py-1">@tablesInArea.Count bàn</span>
+        </div>
+
+        <div class="table-pos-grid">
             @foreach (var table in tablesInArea)
             {
-                var bgClass = table.Status == "Available" ? "border-success bg-success bg-opacity-10" : 
-                              table.Status == "Occupied" ? "border-danger bg-danger bg-opacity-10" : "border-warning bg-warning bg-opacity-10";
-                var textClass = table.Status == "Available" ? "text-success" : 
-                                table.Status == "Occupied" ? "text-danger" : "text-warning";
-
-                <div class="col">
-                    <div class="card border-2 shadow-sm rounded-4 h-100 p-3 bg-white @bgClass">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="h5 fw-bold mb-0 text-dark">@table.TableName</span>
-                            <span class="badge @(table.Status == "Available" ? "bg-success" : table.Status == "Occupied" ? "bg-danger" : "bg-warning text-dark")">
-                                @table.Status
-                            </span>
-                        </div>
-                        <div class="small text-muted mb-3">
-                            <div><i class="fas fa-users me-1"></i> Sức chứa: <strong>@table.Capacity người</strong></div>
-                            <div><i class="fas fa-layer-group me-1"></i> Khu vực: @table.Area</div>
-                        </div>
-
-                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
-                            <!-- Đổi trạng thái nhanh -->
-                            <form asp-action="UpdateStatus" method="post" class="d-flex gap-1">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="tableId" value="@table.TableId" />
-                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                                    <option value="Available" selected="@(table.Status == "Available")">Trống (Available)</option>
-                                    <option value="Occupied" selected="@(table.Status == "Occupied")">Có Khách (Occupied)</option>
-                                    <option value="Reserved" selected="@(table.Status == "Reserved")">Đặt Trước (Reserved)</option>
-                                </select>
-                            </form>
-
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <form asp-action="Delete" asp-route-id="@table.TableId" method="post" onsubmit="return confirm('Xóa bàn này?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm text-danger" title="Xóa bàn"><i class="fas fa-trash-alt"></i></button>
-                                </form>
-                            }
-                        </div>
+                var cardStatusClass = table.Status == "Available" ? "is-available" : 
+                                      table.Status == "Occupied" ? "is-occupied" : "is-reserved";
+                
+                <div class="table-pos-card @cardStatusClass">
+                    <div class="table-pos-icon">
+                        <i class="fas fa-chair"></i>
                     </div>
+                    <div class="table-pos-name">@table.TableName</div>
+                    <div class="table-pos-capacity">
+                        <i class="fas fa-users me-1 text-muted"></i>@table.Capacity chỗ ngồi
+                    </div>
+                    <span class="badge-pos-status">
+                        @(table.Status == "Available" ? "Đang trống" : 
+                          table.Status == "Occupied" ? "Có khách" : "Đã đặt")
+                    </span>
+
+                    <!-- Quick 1-click status updater -->
+                    <form asp-action="UpdateStatus" method="post" class="quick-status-btn-group">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="tableId" value="@table.TableId" />
+                        <input type="hidden" name="status" id="status_input_@table.TableId" value="@table.Status" />
+
+                        <button type="button" class="quick-status-btn @(table.Status == "Available" ? "active-avail" : "")" 
+                                onclick="quickUpdateTable(@table.TableId, 'Available')" title="Đổi sang Trống">
+                            Trống
+                        </button>
+                        <button type="button" class="quick-status-btn @(table.Status == "Occupied" ? "active-occ" : "")" 
+                                onclick="quickUpdateTable(@table.TableId, 'Occupied')" title="Đổi sang Có khách">
+                            Khách
+                        </button>
+                        <button type="button" class="quick-status-btn @(table.Status == "Reserved" ? "active-res" : "")" 
+                                onclick="quickUpdateTable(@table.TableId, 'Reserved')" title="Đổi sang Đã đặt">
+                            Đặt
+                        </button>
+                    </form>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <div class="text-end mt-2 pt-1 border-top">
+                            <form asp-action="Delete" asp-route-id="@table.TableId" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa bàn @table.TableName?');" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link btn-sm text-danger p-0" title="Xóa bàn khỏi hệ thống">
+                                    <small><i class="fas fa-trash-alt"></i> Xóa</small>
+                                </button>
+                            </form>
+                        </div>
+                    }
                 </div>
             }
         </div>
     </div>
 }
 
-<!-- Modal Thêm Bàn Mới -->
+<!-- Modal Thêm Bàn Mới (Admin) -->
 <div class="modal fade" id="createTableModal" tabindex="-1" aria-labelledby="createTableModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
             <form asp-action="Create" method="post">
                 @Html.AntiForgeryToken()
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="createTableModalLabel">Thêm Bàn Mới</h5>
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="createTableModalLabel"><i class="fas fa-plus-circle text-primary me-2"></i>Thêm Bàn Mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Tên / Số Bàn</label>
-                        <input name="TableName" class="form-control" placeholder="Ví dụ: Bàn 10" required />
+                        <label class="form-label fw-bold small text-muted">Tên Bàn (VD: Bàn 10, VIP 01):</label>
+                        <input type="text" name="TableName" class="form-control rounded-3" placeholder="Nhập tên bàn..." required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Khu Vực</label>
-                        <input name="Area" class="form-control" placeholder="Ví dụ: Tầng 1, Tầng 2, Sân Vườn, VIP" value="Tầng 1" required />
+                        <label class="form-label fw-bold small text-muted">Sức Chứa (Số Ghế):</label>
+                        <input type="number" name="Capacity" class="form-control rounded-3" value="4" min="1" max="50" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Sức Chứa (Người)</label>
-                        <input name="Capacity" type="number" class="form-control" value="4" min="1" max="30" required />
+                        <label class="form-label fw-bold small text-muted">Khu Vực Phục Vụ:</label>
+                        <input type="text" name="Area" class="form-control rounded-3" placeholder="Khu A - Máy lạnh, Khu B - Sân vườn..." required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Trạng Thái Ban Đầu</label>
-                        <select name="Status" class="form-select">
+                        <label class="form-label fw-bold small text-muted">Trạng Thái Khởi Tạo:</label>
+                        <select name="Status" class="form-select rounded-3">
                             <option value="Available">Available (Trống)</option>
-                            <option value="Occupied">Occupied (Có khách)</option>
-                            <option value="Reserved">Reserved (Đặt trước)</option>
+                            <option value="Occupied">Occupied (Đang có khách)</option>
+                            <option value="Reserved">Reserved (Đã đặt trước)</option>
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary">Lưu Bàn</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Bàn</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function quickUpdateTable(tableId, newStatus) {
+            const input = document.getElementById('status_input_' + tableId);
+            if (input) {
+                input.value = newStatus;
+                input.closest('form').submit();
+            }
+        }
+    </script>
+}
